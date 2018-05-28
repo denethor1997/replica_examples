@@ -53,17 +53,17 @@ stock_codes = [code for code in range(stock_code_start_sh, stock_code_end_sh)] #
 
 stock_codes += [code for code in range(stock_code_start_sz, stock_code_end_sz)]
 
-# 上证指数
+# 
 open_index_sh, close_index_sh, volume_index_sh, ma5_index_sh, vma5_index_sh, dates_index_sh = load_index_open_close_volume_ma5_vma5_from_tushare(
     stock_data_path + '../sh.csv')
 
-# 深证指数
+# 
 open_index_sz, close_index_sz, volume_index_sz, ma5_index_sz, vma5_index_sz, dates_index_sz = load_index_open_close_volume_ma5_vma5_from_tushare(
     stock_data_path + '../sz.csv')
 
 
 def compute_code(code):
-    time.sleep(0.1)  # 防止进程争抢资源
+    time.sleep(0.1)  # 
     if len(str(code))<6:
         code = ''.join('0' for _ in range(6-len(str(code))))+str(code)
     try:
@@ -78,10 +78,10 @@ def compute_code(code):
         open_price, oneDayLine, volume, ma5, vma5, dates = load_fq_open_close_volume_ma5_vma5_turnover_from_tushare(stock_data_path + str(code) + '_fq.csv')
 
         if (str(code)[0] == '6'):
-            # 上证指数
+            # 
             open_index, close_index, volume_index, ma5_index, vma5_index, dates_index = open_index_sh, close_index_sh, volume_index_sh, ma5_index_sh, vma5_index_sh, dates_index_sh
         else:
-            # 深证指数
+            # 
             open_index, close_index, volume_index, ma5_index, vma5_index, dates_index = open_index_sz, close_index_sz, volume_index_sz, ma5_index_sz, vma5_index_sz, dates_index_sz
 
 
@@ -97,15 +97,13 @@ def compute_code(code):
         X_clf = []
         y_clf = []
         for i in range(daynum, len(oneDayLine)-1):
-            #大单交易数据
+            #
             # big_deals = get_big_deal_volume(code, dates[i])
 
             '''
-            对齐大盘与个股的日期,得到大盘的对应日期位置p
-            由于大盘数据个别不准，必须以复权数据为标准进行对齐
             '''
             p = dates_index.index(dates[i])
-            #组装数据
+            #
 
             X_delta = [oneDayLine[k] - oneDayLine[k - 1] for k in range(i - daynum, i)] + \
                       [volume[k] - volume[k-1] for k in range(i - daynum, i)] + \
@@ -125,7 +123,7 @@ def compute_code(code):
         # X_clf = preprocessing.MinMaxScaler().fit_transform(X_clf)
         y_clf = preprocessing.MinMaxScaler().fit_transform(y_clf)
 
-        #测试数据取多少在这里修改!
+        #!
         X_clf_train, X_clf_test, y_clf_train, y_clf_test = create_Xt_Yt(X_clf, y_clf, 0.86)#0.8
 
         input_dime = len(X_clf[0])
@@ -172,7 +170,7 @@ def compute_code(code):
 
     except Exception as e:
         print e
-        # 有些股票停牌冷,或者刚上市公司数据不足以用于训练,过滤掉。
+        # 
         print code, "is non type or is too less data!"
         return
 # for stock in stock_codes:
@@ -193,16 +191,16 @@ pool.join()
 
 
 
-# acc结果排序
+# 
 sort = sorted(acc_result, key=lambda x: (x[1]), reverse=True)
 print sort
-# 写入文件
+# 
 with open(choose_stock_results, 'wb') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerows(sort)  # in order of list
 
 print 'acc_result', len(acc_result)
-# 平均acc
+# 
 print "*******************************"
 print sum([acc_result[i][1] for i in range(0, len(acc_result))])*1.0/len(acc_result)
 print "*******************************"

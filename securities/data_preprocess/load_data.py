@@ -30,7 +30,7 @@ def download_fq_data_from_tushare(code):
     path = './data/'
     import tushare as ts
     import datetime
-    sh_index_lastday = open(path+'sh.csv', 'rb').readlines()[1:][-1]  # 取上证最后一天日期做比对，如果个股没有则不存储
+    sh_index_lastday = open(path+'sh.csv', 'rb').readlines()[1:][-1]  # 
     # if os.path.exists(path+'stock_data/' + str(code) + '.csv'):
     #     import tushare as ts
     #
