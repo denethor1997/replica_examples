@@ -7,24 +7,6 @@ import numpy
 
 def download_from_tushare(code):
     '''
-    #宏观经济形势,数字指标1:货币供应量
-    month :统计时间
-    m2 :货币和准货币（广义货币M2）(亿元)
-    m2_yoy:货币和准货币（广义货币M2）同比增长(%)
-    m1:货币(狭义货币M1)(亿元)
-    m1_yoy:货币(狭义货币M1)同比增长(%)
-    m0:流通中现金(M0)(亿元)
-    m0_yoy:流通中现金(M0)同比增长(%)
-    cd:活期存款(亿元)
-    cd_yoy:活期存款同比增长(%)
-    qm:准货币(亿元)
-    qm_yoy:准货币同比增长(%)
-    ftd:定期存款(亿元)
-    ftd_yoy:定期存款同比增长(%)
-    sd:储蓄存款(亿元)
-    sd_yoy:储蓄存款同比增长(%)
-    rests:其他存款(亿元)
-    rests_yoy:其他存款同比增长(%)
     '''
     import tushare as ts
     path = './data/'
@@ -33,15 +15,15 @@ def download_from_tushare(code):
     hist_data = ts.get_hist_data(str(code))
     if hist_data is not None:
         hist_data.to_csv(path+"stock_data/"+str(code)+'.csv')
-        return True
+    #        return True
     else:
-        return False
+        print('failed to load data:%s' % code)
+        exit(-1)
     # 30 day lines
-    # ts.get_hist_data(str(code), ktype='M').to_csv(path+"stock_data/"+str(code)+'_month.csv')
+    ts.get_hist_data(str(code), ktype='M').to_csv(path+"stock_data/"+str(code)+'_month.csv')
 
 def download_fq_data_from_tushare(code):
     '''
-    必须下载历史数据，根据历史数据日期请求复盘数据，这里是前复盘
     :param code:
     :return:
     '''
@@ -95,7 +77,7 @@ def download_economy():
     end = datetime.datetime.today().date()
     ts.get_k_data('399001',  start=str(start), index=True).to_csv(path + 'sz.csv')  #默认2年 ,
     ts.get_k_data('000001',  start=str(start), index=True).to_csv(path + 'sh.csv')
-    #存款准备金率
+    #
     ts.get_rrr().to_csv(path + 'rrr.csv')
 
 def load_data(path):
@@ -483,13 +465,11 @@ def split_into_chunks(data, train, predict, step, binary=True, scale=True):
 
 def get_big_deal_volume(code, date, volume = 400):
     '''
-    得到大单交易数据
     :param code:
     :param date:
     :param volume:
     :return:
     '''
-    # 大单交易数据 取所有大单的差值
     import tushare as ts
     big_deals = ts.get_sina_dd(str(code), date=date, vol=volume)
     if big_deals is None:
@@ -523,10 +503,8 @@ def shuffle_in_unison(a, b):
 
 def create_Xt_Yt(X, y, percentage=0.8,retain = 0):
     '''
-    将数据集划分出训练集和测试集,可以设置retain_testset=22留出22天一个月的数据进行测试
     :param X:
     :param y:
-    :param percentage: 分割比例
     :return:
     '''
 
@@ -536,7 +514,7 @@ def create_Xt_Yt(X, y, percentage=0.8,retain = 0):
     X_train = X[0:int(len(X) * percentage)-int(retain*percentage)]
     Y_train = y[0:int(len(y) * percentage)-int(retain*percentage)]
 
-    #若用LSTM做预测,不能洗牌
+    #
     #X_train, Y_train = shuffle_in_unison(X_train, Y_train)
 
     if retain == 0:
@@ -553,8 +531,6 @@ def create_Xt_Yt(X, y, percentage=0.8,retain = 0):
 
 def To_DL_datatype(code):
     '''
-    用于LSTM格式的数据
-    :param code: 股票代码
     :return: X,y
     '''
     import numpy as np

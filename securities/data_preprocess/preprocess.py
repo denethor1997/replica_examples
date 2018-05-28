@@ -17,8 +17,6 @@ def covert_bin(x, covert_len):
 
 def get_open_price(code, date):
     '''
-    获取开盘价
-    :param code:股票代码
     :param date: 日期
     :return:
     '''
@@ -28,9 +26,6 @@ def get_open_price(code, date):
 
 def get_am_pm_price(code, date):
     '''
-    :param code: 股票代码
-    :param date: 股票查询日期
-    :return: 该股票在该日期下对应的早上约10点,下午约2:30的价格
     '''
     if type(code) is not str or type(date) is not str:
         code = str(code)
@@ -47,9 +42,6 @@ def get_am_pm_price(code, date):
 
 def get_open_close_hist_price(code, start_date=None, end_date=None):
     '''
-    :param code: 股票代码
-    :param date: 股票查询日期
-    :return: 该股票在该open close 的价格
     '''
     import tushare as ts
     if start_date != None and end_date != None:
@@ -99,8 +91,6 @@ def read_sort_result(sort_results_path):
 
 def get_data_for_MLP(code):
     '''
-    :param code: 股票代码
-    :return: MLP训练数据X, y
     '''
     import numpy as np
     data_path = "./data/stock_data/"
@@ -123,8 +113,6 @@ def get_data_for_MLP(code):
 
 def get_today_data_for_MLP(code):
     '''
-    :param code:股票代码
-    :return: 今日预测的X
     '''
     import numpy as np
     data_path = "./data/stock_data/"
@@ -147,8 +135,6 @@ def get_today_data_for_MLP(code):
 
 def get_today_more_data_for_MLP(code):
     '''
-    :param code:股票代码
-    :return: 今日预测的X
     '''
     import numpy as np
     stock_data_path = "./data/stock_data/"
@@ -196,8 +182,6 @@ def get_today_more_data_for_MLP(code):
 
 def get_last_month_data_for_MLP(code):
     '''
-    :param code:股票代码
-    :return: MLP最近一个月(修改参数在函数内的num)的MLP测试数据
     '''
     import numpy as np
     stock_data_path = "./data/stock_data/"
@@ -222,8 +206,6 @@ def get_last_month_data_for_MLP(code):
 
 def get_last_month_more_data_for_MLP(code):
     '''
-    :param code:股票代码
-    :return: MLP最近一个月(修改参数在函数内的num)的MLP测试数据
     '''
     import numpy as np
     stock_data_path = "./data/stock_data/"
@@ -302,8 +284,6 @@ def get_last_month_more_data_for_MLP(code):
 
 def get_last_N_days_data_for_MLP(code, N):
     '''
-    :param code:股票代码
-    :return: MLP最近一个月(修改参数在函数内的num)的MLP测试数据
     '''
     import numpy as np
     data_path = "./data/stock_data/"
@@ -328,7 +308,6 @@ def get_last_N_days_data_for_MLP(code, N):
 
 def read_stock_dict():
     '''
-    读取存储的持有股票信息
     :return:
     '''
     data_file = open('./data/cvmodel/stock_dict.csv', 'r')
@@ -340,16 +319,12 @@ def read_stock_dict():
 
 def get_today_open_price(code):
     '''
-    :param code:股票代码
-    :return:今日开盘价
     '''
     import tushare as ts
     return ts.get_realtime_quotes(code)['open']
 
 def get_today_close_price(code):
     '''
-    :param code:股票代码
-    :return: 今日收盘价
     '''
     import tushare as ts
     return ts.get_realtime_quotes(code)['close']
@@ -357,7 +332,6 @@ def get_today_close_price(code):
 
 def load_snp_returns():
     '''
-    没用上
     :return:
     '''
     f = open('600841.csv', 'rb').readlines()[1:]
@@ -377,7 +351,6 @@ def load_snp_returns():
 
 def load_snp_close():
     '''
-    没用上
     :return:
     '''
     f = open('table.csv', 'rb').readlines()[1:]
@@ -396,7 +369,6 @@ def load_snp_close():
 
 def split_into_chunks(data, train, predict, step, binary=True, scale=True):
     '''
-    没用上
     :param data:
     :param train:
     :param predict:
@@ -437,7 +409,6 @@ def split_into_chunks(data, train, predict, step, binary=True, scale=True):
 
 def shuffle_in_unison(a, b):
     '''
-    洗牌,没用上
     :param a:
     :param b:
     :return:
