@@ -3,7 +3,9 @@ import numpy as np
 from sklearn import preprocessing
 import os
 import numpy
+from threading import Lock
 
+lock = Lock()
 
 def download_from_tushare(code):
     '''
@@ -49,11 +51,17 @@ def download_fq_data_from_tushare(code):
     start = datetime.datetime.today().date() + datetime.timedelta(-365 * years)
     # 3years line
     # fp_data = ts.get_h_data(str(code), start=str(start))
+    lock.acquire()
+    print('get_k_data(%s)' % code)
     fp_data = ts.get_k_data(str(code), start=str(start))
+    lock.release()
+    print('fp_len:%s' % (len(fp_data)))
     if fp_data is not None and len(fp_data) > 1 and fp_data['date'].tolist()[-1] == sh_index_lastday.split(',')[1]:
         fp_data.to_csv(path + "stock_data/" + str(code) + '_fq.csv')
         return True
     else:
+        if fp_data is not None and len(fp_data) > 1:
+            print('data not match:%s, %s' % (fp_data['date'].tolist()[-1], sh_index_lastday.split(',')[1]))
         return False
 
 

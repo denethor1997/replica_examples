@@ -1,5 +1,10 @@
 # -*- coding:utf-8 -*-
 import os
+import traceback
+import time
+
+import numpy as np
+
 #os.environ['KERAS_BACKEND'] = "theano"
 #os.environ['THEANO_FLAGS'] = "device=cpu"
 from data_preprocess.preprocess import *
@@ -41,13 +46,13 @@ choose_stock_results = './data/sort_results_22_test.csv'
 
 # 600004  603999   sh
 stock_code_start_sh = 600004
-stock_code_end_sh = 603999
+stock_code_end_sh = 600009 #603999
 
 # 000002  002815   sz
 stock_code_start_sz = 2
-stock_code_end_sz = 2815
+stock_code_end_sz = 5 #2815
 
-download_economy()
+#download_economy()
 
 stock_codes = [code for code in range(stock_code_start_sh, stock_code_end_sh)] #603996
 
@@ -71,12 +76,12 @@ def compute_code(code):
         if download_fq_data_from_tushare(code):
             print code, "download over ~ "
         else:
+            print('failed to download %s' % code)
             return
-
+        download_from_tushare(code)
         # oneDayLine, dates = load_data_from_tushare(stock_data_path + str(code) + '.csv')
         # volume, volume_dates = load_volume_from_tushare(stock_data_path + str(code) + '.csv')
-        open_price, oneDayLine, volume, ma5, vma5, dates = load_fq_open_close_volume_ma5_vma5_turnover_from_tushare(stock_data_path + str(code) + '_fq.csv')
-
+        open_price, oneDayLine, volume, ma5, vma5, turnover, dates = load_fq_open_close_volume_ma5_vma5_turnover_from_tushare(stock_data_path + str(code) + '_fq.csv')
         if (str(code)[0] == '6'):
             # 
             open_index, close_index, volume_index, ma5_index, vma5_index, dates_index = open_index_sh, close_index_sh, volume_index_sh, ma5_index_sh, vma5_index_sh, dates_index_sh
@@ -88,7 +93,6 @@ def compute_code(code):
         # thirtyDayLine, month_dates = load_data_from_tushare(stock_data_path + str(code) + '_month.csv')
         if len(oneDayLine) < 400:
             return
-
         ef = Extract_Features()
         daynum = 5
         '''
@@ -98,7 +102,7 @@ def compute_code(code):
         y_clf = []
         for i in range(daynum, len(oneDayLine)-1):
             #
-            # big_deals = get_big_deal_volume(code, dates[i])
+            big_deals = 0 #get_big_deal_volume(code, dates[i])
 
             '''
             '''
@@ -125,13 +129,12 @@ def compute_code(code):
 
         #!
         X_clf_train, X_clf_test, y_clf_train, y_clf_test = create_Xt_Yt(X_clf, y_clf, 0.86)#0.8
-
         input_dime = len(X_clf[0])
         # out = input_dime * 2 + 1
         if True:#not os.path.isfile('./data/model_'+str(code)+'.h5'):
             model = clf_model(input_dime)
-            model.fit(X_clf_train,
-                      y_clf_train,
+            model.fit(np.array(X_clf_train),
+                      np.array(y_clf_train),
                       nb_epoch=700,
                       batch_size=50,
                       verbose=0,
@@ -156,7 +159,7 @@ def compute_code(code):
             print("Loaded model from disk")
             print "model" + str(code) + "loaded!"
 
-        score = model.evaluate(X_clf_test, y_clf_test, batch_size=10)
+        score = model.evaluate(np.array(X_clf_test), np.array(y_clf_test), batch_size=10)
 
         print "****************************************"
         print 'code =', code
@@ -169,7 +172,7 @@ def compute_code(code):
             # return [code, score[1]]
 
     except Exception as e:
-        print e
+        traceback.print_exc()
         # 
         print code, "is non type or is too less data!"
         return
