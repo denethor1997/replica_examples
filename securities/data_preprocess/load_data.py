@@ -4,6 +4,7 @@ from sklearn import preprocessing
 import os
 import numpy
 from threading import Lock
+import traceback
 
 lock = Lock()
 
@@ -225,11 +226,14 @@ def load_fq_open_close_volume_ma5_vma5_turnover_from_tushare(path):
             vma5_temp = [float(m.split(',')[6]) for m in line5_temp]
             raw_vma5.append(numpy.mean(vma5_temp))
 
+            """
             if fq_line.split(',')[1] in fdates:
                 date_index = fdates.index(fq_line.split(',')[1])
                 line = f[date_index]
                 turnover = float(line.split(',')[14])
             else:
+            """
+            if True:
                 if last_outstanding == 0.0:
                     turnover = 0.6
                 else:
@@ -243,6 +247,7 @@ def load_fq_open_close_volume_ma5_vma5_turnover_from_tushare(path):
 
             raw_dates.append(fq_line.split(',')[1])
         except Exception as e:
+            traceback.print_exc()
             print ('load_fq error : ',e)
             continue
     # return raw_open_price[::-1], raw_close_price[::-1], raw_volume[::-1], raw_ma5[::-1], raw_vma5[::-1], raw_dates[::-1] # inverse order
@@ -537,7 +542,7 @@ def create_Xt_Yt(X, y, percentage=0.8,retain = 0):
     return X_train, X_test, Y_train, Y_test
 
 
-def To_DL_datatype(code):
+def To_DL_datatype(code, scale=False):
     '''
     :return: X,y
     '''
@@ -547,12 +552,17 @@ def To_DL_datatype(code):
     thirtydayline, dates = load_data_from_tushare(path + str(code) + '_month.csv')
     X = []
     y = []
+
+    if scale:
+        dayline = preprocessing.scale(dayline).tolist()
+        thirtydayline = preprocessing.scale(thirtydayline).tolist()
+
     for i in range(0, len(dayline) - 8):
         dat = date[i].split('-')
         for j, word in enumerate(dates):
             if word.startswith(dat[0]+'-'+dat[1]):
                 index = j
-        X.append(dayline[i:i+7]+thirtydayline[index-12:index])
+        X.append(dayline[i:i+7]) #+thirtydayline[index-12:index])
         y.append(dayline[i+7])
     return np.array(X), np.array(y)
 

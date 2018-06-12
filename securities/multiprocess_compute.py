@@ -50,7 +50,7 @@ stock_code_end_sh = 600009 #603999
 
 # 000002  002815   sz
 stock_code_start_sz = 2
-stock_code_end_sz = 5 #2815
+stock_code_end_sz = 9 #2815
 
 #download_economy()
 
@@ -102,7 +102,7 @@ def compute_code(code):
         y_clf = []
         for i in range(daynum, len(oneDayLine)-1):
             #
-            big_deals = 0 #get_big_deal_volume(code, dates[i])
+            big_deals = get_big_deal_volume(code, dates[i])
 
             '''
             '''
