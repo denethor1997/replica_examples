@@ -5,6 +5,7 @@ import os
 import numpy
 from threading import Lock
 import traceback
+import tushare as ts
 
 lock = Lock()
 
@@ -67,9 +68,10 @@ def download_fq_data_from_tushare(code):
 
 
 def download_economy():
-    import tushare as ts
+
     path = './data/'
-    ts.get_money_supply().to_csv(path+'money_supply.csv')
+    df = ts.get_money_supply()
+    df.to_csv(path+'money_supply.csv')
     ts.get_gdp_quarter().to_csv(path+'gdp_quarter.csv')
     ts.get_gdp_year().to_csv(path + 'gdp_year.csv')
     ts.get_cpi().to_csv(path+'cpi.csv')
@@ -144,6 +146,33 @@ def load_data_from_tushare(path):
         except:
             continue
     return raw_data[::-1], raw_dates[::-1]  # inverse order
+
+def load_ma5_from_tushare(path):
+    f = open(path, 'rb').readlines()[1:]
+    raw_data = []
+    raw_dates = []
+    for line in f:
+        try:
+            ma5 = float(line.split(',')[8])
+            raw_data.append(ma5)
+            raw_dates.append(line.split(',')[0])
+        except:
+            continue
+    return raw_data[::-1], raw_dates[::-1]  # inverse order
+
+def load_p_change_from_tushare(path):
+    f = open(path, 'rb').readlines()[1:]
+    raw_data = []
+    raw_dates = []
+    for line in f:
+        try:
+            p_change = float(line.split(',')[7])
+            raw_data.append(p_change)
+            raw_dates.append(line.split(',')[0])
+        except:
+            continue
+    return raw_data[::-1], raw_dates[::-1]  # inverse order
+
 
 def load_open_close_volume_ma5_vma5_turnover_from_tushare(path):
     '''
@@ -557,14 +586,55 @@ def To_DL_datatype(code, scale=False):
         dayline = preprocessing.scale(dayline).tolist()
         thirtydayline = preprocessing.scale(thirtydayline).tolist()
 
-    for i in range(0, len(dayline) - 8):
+    for i in range(0, len(dayline) - 12):
         dat = date[i].split('-')
         for j, word in enumerate(dates):
             if word.startswith(dat[0]+'-'+dat[1]):
                 index = j
-        X.append(dayline[i:i+7]) #+thirtydayline[index-12:index])
-        y.append(dayline[i+7])
+        X.append(dayline[i:i+10]) #+thirtydayline[index-12:index])
+        y.append(dayline[i+11])
     return np.array(X), np.array(y)
+
+def To_DL_datatype_ma5(code, scale=False):
+    '''
+    :return: X,y
+    '''
+    import numpy as np
+    path = './data/stock_data/'
+    dayline, date = load_ma5_from_tushare(path + str(code)+'.csv')
+    X = []
+    y = []
+
+    if scale:
+        dayline = preprocessing.scale(dayline).tolist()
+
+    for i in range(0, len(dayline)-11-4):
+        dat = date[i].split('-')
+        
+        X.append(dayline[i:i+10]) 
+        y.append(dayline[i+10+4])
+    return np.array(X), np.array(y)
+
+def To_DL_datatype_p_change(code, scale=False):
+    '''
+    :return: X,y
+    '''
+    import numpy as np
+    path = './data/stock_data/'
+    dayline, date = load_p_change_from_tushare(path + str(code)+'.csv')
+    X = []
+    y = []
+
+    if scale:
+        dayline = preprocessing.scale(dayline).tolist()
+
+    for i in range(0, len(dayline)-11-4):
+        dat = date[i].split('-')
+        
+        X.append(dayline[i:i+10]) 
+        y.append(dayline[i+10+4])
+    return np.array(X), np.array(y)
+
 
 
 
