@@ -3,6 +3,7 @@ import os
 import traceback
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 #os.environ['KERAS_BACKEND'] = "theano"
@@ -12,10 +13,14 @@ from data_preprocess.load_data import *
 import csv
 from data_preprocess.Extract_Features import Extract_Features
 from keras.models import model_from_json
-from algorithum.clf_mlp import clf_model
+from algorithm.reg_lstm import reg_lstm
+from algorithm.rmse import *
+
 import tushare as ts
 # import myglobal
-import time
+import shutil
+
+
 dates = []
 oneDayLine = []
 thirtyDayLine = []
@@ -31,7 +36,6 @@ download_economy()
 models_path = './data/models_22_test/'
 
 # 删除原有目录，××××注意××××××
-import shutil
 # shutil.rmtree(models_path,True)
 # os.remove('./models/*')  #清空
 if os.path.isdir(models_path) is not True:
@@ -104,26 +108,34 @@ def compute_code(code):
                       [ef.MoneySupply(dates[i])]
                       # [ef.rrr(dates[i - 1])] + \
             X_clf.append(X_delta)
-            y_clf.append([1, 0] if oneDayLine[i + 1] - oneDayLine[i] > 0 else [0, 1])
-            # y_clf.append([1, 0] if ((oneDayLine[i] - oneDayLine[i - 1])/oneDayLine[i - 1]) > 0.01 else [0, 1])
+            y_clf.append(oneDayLine[i + 1] - oneDayLine[i])
 
-        #X_clf = preprocessing.MinMaxScaler().fit_transform(X_clf)
+        print(len(X_clf))
         print(X_clf[0])
-        #y_clf = preprocessing.MinMaxScaler().fit_transform(y_clf)
+        print(len(y_clf))
+        print(y_clf[0])
+
+        X_clf = preprocessing.MinMaxScaler().fit_transform(X_clf)
+        y_clf = preprocessing.MinMaxScaler().fit_transform(np.reshape(np.array(y_clf), (-1, 1)))
 
         #!
         X_clf_train, X_clf_test, y_clf_train, y_clf_test = create_Xt_Yt(X_clf, y_clf, 0.86)#0.8
+        X_clf_train = np.array(X_clf_train)
+        X_clf_test = np.array(X_clf_test)
+        X_clf_train = np.reshape(X_clf_train, (X_clf_train.shape[0], 1, X_clf_train.shape[1]))
+        X_clf_test = np.reshape(X_clf_test, (X_clf_test.shape[0], 1, X_clf_test.shape[1]))
         input_dime = len(X_clf[0])
         # out = input_dime * 2 + 1
         if True:#not os.path.isfile('./data/model_'+str(code)+'.h5'):
-            model = clf_model(input_dime)
-            model.fit(np.array(X_clf_train),
+            model = reg_lstm(input_dime)
+            model.fit(X_clf_train,
                       np.array(y_clf_train),
                       nb_epoch=400,
                       batch_size=50,
                       verbose=0,
                       # validation_split=0.12
                       )
+            """
             # serialize model to JSON
             model_json = model.to_json()
             with open(models_path + "model_" + str(code) + ".json", "w") as json_file:
@@ -131,7 +143,7 @@ def compute_code(code):
             # serialize weights to HDF5
             model.save_weights(models_path +"model_" + str(code) + ".h5")
             print("Saved model to disk")
-
+            """
         else:
 
             json_file = open(models_path + 'model_' + str(code) + '.json', 'r')
@@ -143,7 +155,7 @@ def compute_code(code):
             print("Loaded model from disk")
             print "model" + str(code) + "loaded!"
 
-        score = model.evaluate(np.array(X_clf_test), np.array(y_clf_test), batch_size=10)
+        score = model.evaluate(X_clf_test, y_clf_test, batch_size=10)
 
         print "****************************************"
         print 'code =', code
@@ -152,8 +164,21 @@ def compute_code(code):
         print ""
         print "test : ", model.metrics_names[0], score[0], model.metrics_names[1], score[1]
         print("%s: %.2f%%" % (model.metrics_names[1], score[1] * 100))
-        acc_result.append([code, score[1]])
-            # return [code, score[1]]
+
+        predicted_y_clf_test = model.predict(X_clf_test)
+        my_rmse = rmse(predicted_y_clf_test, y_clf_test)
+        print("rmse = %s" % my_rmse)
+
+        plt.figure(1)
+        plt.plot(dates[len(dates)-len(y_clf_test):len(dates)], y_clf_test, color='g')
+        plt.plot(dates[len(dates)-len(predicted_y_clf_test):len(dates)], predicted_y_clf_test, color='r')
+        plt.show()
+
+        predicted_y_clf_train = model.predict(X_clf_train)
+        plt.figure(1)
+        plt.plot(dates[0:len(y_clf_train)], y_clf_train, color='g')
+        plt.plot(dates[0:len(y_clf_train)], predicted_y_clf_train, color='r')
+        plt.show()
 
     except Exception as e:
         traceback.print_exc()

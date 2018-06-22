@@ -5,7 +5,7 @@ from data_preprocess.load_data import *
 #from data_preprocess.Extract_Features import Extract_Features
 from sklearn import preprocessing
 from algorithm.rmse import *
-from algorithm.reg_lstm import reg_lstm
+from algorithm.reg_lstm_step import reg_lstm_step
 
 path = './data/stock_data/'
 #code = 600841
@@ -45,14 +45,14 @@ print(y[0])
 print(y[1])
 
 X_train, X_test, Y_train, Y_test = create_Xt_Yt(X, y, 0.8)
-X_train = np.reshape(X_train, (X_train.shape[0], 1, X_train.shape[1]))
-X_test = np.reshape(X_test, (X_test.shape[0], 1, X_test.shape[1]))
+X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
-model = reg_lstm(10)
+model = reg_lstm_step(10, 1)
 model.fit(X_train,
           Y_train,
-          nb_epoch=300,
-          batch_size=50,
+          epochs=400,
+          batch_size=100,
           verbose=1,
           validation_split=0.1)
 score = model.evaluate(X_test, Y_test, batch_size=50)
@@ -70,14 +70,14 @@ print(X_test[-2])
 print(Y_test[-2])
 print(predicted_Y_test[-2])
 tmp = X_test[-2]
-tmp = tmp.reshape(1,1,10)
+tmp = tmp.reshape(1,10, 1)
 print(model.predict(tmp))
 
 print(X_test[-1])
 print(Y_test[-1])
 print(predicted_Y_test[-1])
 tmp = X_test[-1]
-tmp = tmp.reshape(1,1,10)
+tmp = tmp.reshape(1,10,1)
 print(model.predict(tmp))
 
 # means of val
