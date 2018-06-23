@@ -52,8 +52,8 @@ def get_data_label_dates(path, reverse=True):
     return np.array(data), np.array(label), np.array(label_dates)
 
 path = './data/stock_data/'
-code = 600082
-#code = 600169
+#code = 600082
+code = 600169
 
 hist_data_path = os.path.join(path, str(code) + '.csv')
 
