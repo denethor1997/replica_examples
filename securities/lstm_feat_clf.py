@@ -29,7 +29,9 @@ acc_result = []
 
 acc_result = []
 
-stock_code = '600169'
+#stock_code = '600169'
+#stock_code = '600082'
+stock_code = '600083'
 
 download_economy()
 
