@@ -14,7 +14,7 @@ from models.rmse import *
 from models.reg_cnn import reg_cnn
 
 
-def get_data_label_dates(path):
+def get_data_label_dates(path, reverse=True):
     df = pd.read_csv(path)
     prices = []
     close_prices = []
@@ -34,12 +34,13 @@ def get_data_label_dates(path):
         
         dates.append(row['date'])
     
-    prices = prices[::-1]
-    close_prices = close_prices[::-1]
-    dates = dates[::-1]
+    if reverse:
+        prices = prices[::-1]
+        close_prices = close_prices[::-1]
+        dates = dates[::-1]
 
-    slide_window = 10
-    dayn = 0 #start from 0
+    slide_window = 15
+    dayn = 1 #start from 0
     data = []
     label = []
     label_dates = []
@@ -61,7 +62,10 @@ if os.path.isfile(hist_data_path):
 else:
     download_from_tushare(code)
 
+#hist_data_path_fq = os.path.join(path, str(code) + '_fq.csv')
+
 X, y, dates = get_data_label_dates(hist_data_path)
+#X, y, dates = get_data_label_dates(hist_data_path_fq, reverse=False)
 
 dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
 
