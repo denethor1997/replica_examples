@@ -7,12 +7,12 @@ import numpy as np
 
 #os.environ['KERAS_BACKEND'] = "theano"
 #os.environ['THEANO_FLAGS'] = "device=cpu"
-from data_preprocess.preprocess import *
-from data_preprocess.load_data import *
+from utils.preprocess import *
+from utils.load_data import *
 import csv
-from data_preprocess.Extract_Features import Extract_Features
+from utils.Extract_Features import Extract_Features
 from keras.models import model_from_json
-from algorithum.clf_mlp import clf_model
+from models.clf_mlp import clf_model
 import tushare as ts
 # import myglobal
 import time
