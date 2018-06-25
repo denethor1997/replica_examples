@@ -12,6 +12,14 @@ import pandas as pd
 from utils.load_data import *
 from models.rmse import *
 from models.reg_cnn import reg_cnn
+from models.reg_mobilenet import reg_mobilenet
+
+path = './data/stock_data/'
+#code = 600082
+code = 600169
+#code = 600815
+#code = 600036
+#code = 300104
 
 
 def get_data_label_dates(path, reverse=True):
@@ -25,7 +33,6 @@ def get_data_label_dates(path, reverse=True):
         day_prices.append(row['close'])
         day_prices.append(row['high'])
         day_prices.append(row['low'])
-        day_prices = [0,0,0] + day_prices + [0,0,0]
         
         prices.append(day_prices)
 
@@ -51,10 +58,6 @@ def get_data_label_dates(path, reverse=True):
 
     return np.array(data), np.array(label), np.array(label_dates)
 
-path = './data/stock_data/'
-#code = 600082
-code = 600169
-
 hist_data_path = os.path.join(path, str(code) + '.csv')
 
 if os.path.isfile(hist_data_path):
@@ -72,10 +75,24 @@ dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
 X_train, X_test, y_train, y_test = create_Xt_Yt(X, y, 0.8)
 print(X_train.shape)
 
+#padding
+X_train = np.pad(X_train, ((0,0), (11,11), (14,14)),'constant')
+X_test = np.pad(X_test, ((0,0), (11,11), (14,14)),'constant')
+print(X_train.shape)
+
 X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], X_train.shape[2], 1))
 X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], X_test.shape[2], 1))
+print(X_train.shape)
 
-model = reg_cnn((X_train.shape[1], X_train.shape[2], 1))
+"""
+#repeat 3 channels
+X_train = np.repeat(X_train, 3, axis=3)
+X_test = np.repeat(X_test, 3, axis=3)
+print(X_train.shape)
+print(X_train[0])
+"""
+
+model = reg_cnn((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
 model.fit(X_train,
           y_train,
           epochs=800,
