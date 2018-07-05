@@ -19,41 +19,60 @@ path = './data/stock_data/'
 #code = 600169
 #code = 600815
 #code = 600036
-code = 300104
-
+#code = 300104
+code = 600201
 
 def get_data_label_dates(path, reverse=True):
     df = pd.read_csv(path)
-    prices = []
-    close_prices = []
+    features = []
+    targets = []
     dates = []
+
+    volumes = []
+    for index, row in df.iterrows():
+        vols = []
+        vols.append(row['volume'])
+        vols.append(row['v_ma5'])
+        vols.append(row['v_ma10'])
+        vols.append(row['v_ma20'])
+
+        volumes.append(vols)
+
+    volumes = preprocessing.scale(volumes)
+
     for index, row in df.iterrows():
         day_prices = []
         day_prices.append(row['open'])
         day_prices.append(row['close'])
         day_prices.append(row['high'])
         day_prices.append(row['low'])
+        day_prices.append(row['ma5'])
+        day_prices.append(row['ma10'])
+        day_prices.append(row['ma20'])
+
+        if 'turnover' in row:
+            day_prices.append(row['turnover'])
         
-        prices.append(day_prices)
+        features.append(day_prices + volumes[index].tolist())
 
         #close_prices.append(row['close'])
-        close_prices.append(row['ma5'])
+        targets.append(row['ma5'])
         
         dates.append(row['date'])
-    
+
     if reverse:
-        prices = prices[::-1]
-        close_prices = close_prices[::-1]
+        features = features[::-1]
+        targets = targets[::-1]
         dates = dates[::-1]
 
     slide_window = 15
-    dayn = 1 #start from 0
+    dayn = 4 #start from 0
     data = []
     label = []
     label_dates = []
     for i in range(len(dates) - slide_window - 1 - dayn):
-        data.append(prices[i:i + slide_window])
-        label.append(close_prices[i + slide_window + dayn])
+        data.append(features[i:i + slide_window])
+        label.append(targets[i + slide_window + dayn])
         label_dates.append(dates[i + slide_window + dayn])
 
     return np.array(data), np.array(label), np.array(label_dates)
@@ -76,8 +95,10 @@ X_train, X_test, y_train, y_test = create_Xt_Yt(X, y, 0.8)
 print(X_train.shape)
 
 #padding
-X_train = np.pad(X_train, ((0,0), (11,11), (14,14)),'constant')
-X_test = np.pad(X_test, ((0,0), (11,11), (14,14)),'constant')
+pad_row = 10
+pad_col = 12
+X_train = np.pad(X_train, ((0,0), (pad_row,pad_row), (pad_col,pad_col)),'constant')
+X_test = np.pad(X_test, ((0,0), (pad_row,pad_row), (pad_col,pad_col)),'constant')
 print(X_train.shape)
 
 X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], X_train.shape[2], 1))
@@ -98,7 +119,6 @@ model.fit(X_train,
           epochs=800,
           batch_size=64,
           verbose=1,
-          #shuffle=True,
           validation_split=0.1)
 
 score = model.evaluate(X_test, y_test, batch_size=50)
