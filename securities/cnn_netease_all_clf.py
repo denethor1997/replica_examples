@@ -3,11 +3,14 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import os
 import time
+from datetime import date
 
 import numpy as np
 from sklearn import preprocessing
 import tushare as ts
 import pandas as pd
+
+from keras.callbacks import ModelCheckpoint
 
 from utils.load_data import *
 from models.rmse import *
@@ -15,12 +18,16 @@ from models.clf_cnn import clf_cnn
 #from models.reg_mobilenet import reg_mobilenet
 
 path = './data/netease/hist_ma/'
-#code = 600082
-code = 600169
+code = 600082
+#code = 600169
 #code = 600815
 #code = 600036
 #code = 300104
 #code = 600201
+
+snapshot_dir = './snapshots/cnn_netease_all_clf'
+if not os.path.exists(snapshot_dir):
+    os.makedirs(snapshot_dir)
 
 def get_data_label_dates(path, reverse=True):
     df = pd.read_csv(path)
@@ -52,7 +59,16 @@ def get_data_label_dates(path, reverse=True):
 
         if 'turnover' in row:
             day_prices.append(row['turnover'])
-        
+
+        """  
+        row_date = row['date']
+        tokens = row_date.split('-')
+        real_date = date(int(tokens[0]), int(tokens[1]), int(tokens[2]))
+        day_prices.append(real_date.month/12.0)
+        day_prices.append(real_date.day/31.0)
+        day_prices.append(real_date.weekday()/7.0)
+        """ 
+       
         features.append(day_prices + volumes[index].tolist())
 
         #close_prices.append(row['close'])
@@ -114,14 +130,21 @@ print(X_train[0])
 """
 
 model = clf_cnn((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+
+best_cp_path = os.path.join(snapshot_dir, str(code) + '_D_@.hdf5')
+model_cp = ModelCheckpoint(best_cp_path, save_best_only=True, monitor='val_acc', mode='max')
+cb_lists = [model_cp]
+
 model.fit(X_train,
           y_train,
           epochs=70,
           batch_size=64,
           verbose=1,
           shuffle=True,
-          validation_split=0.05)
+          validation_split=0.05,
+          callbacks=cb_lists)
 
+model.load_weights(filepath=best_cp_path)
 score = model.evaluate(X_test, y_test, batch_size=50)
 print "****************************************"
 print 'code =', code
@@ -130,6 +153,8 @@ print "****************************************"
 print ""
 print "test : ", model.metrics_names[0], score[0], model.metrics_names[1], score[1]
 print("%s: %.2f%%" % (model.metrics_names[1], score[1] * 100))
+
+os.rename(best_cp_path, best_cp_path.replace('@', str(score[1])))
 
 """
 print score
