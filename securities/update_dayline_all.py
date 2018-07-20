@@ -3,11 +3,13 @@ import os
 import numpy as np
 import pandas as pd
 import tushare as ts
+from datetime import datetime
 
 save_dir = 'data/dayline/latest'
 bak_dir = 'data/dayline/bak'
 save_log = 'data/dayline/update.log'
 
+"""
 # 600004  603999   sh
 stock_code_start_sh = 600004
 stock_code_end_sh = 603999
@@ -21,6 +23,17 @@ stock_code_end_sz = 2815
 stock_codes = [code for code in range(stock_code_start_sh, stock_code_end_sh)] #603996
 
 stock_codes += [code for code in range(stock_code_start_sz, stock_code_end_sz)]
+"""
+
+today = datetime.now().strftime('%Y-%m-%d')
+df = ts.get_day_all(today)
+
+if df is None or df.empty:
+    print('failed to get codes')
+    exit(-1)
+
+stock_codes = df['code'].tolist()
+print('total codes:%s' % len(stock_codes))
 
 log = open(save_log, 'w')
 

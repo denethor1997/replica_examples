@@ -15,7 +15,7 @@ def get_hist_netease(code, start_date='', end_date=''):
 
     if len(code) <= 6:
         code = code.zfill(6)
-        if code[0] == '0':
+        if code[0] == '0' or code[0] == '3' or code[0] == '2':
             code = '1' + code
         else:
             code = '0' + code
@@ -43,7 +43,8 @@ def get_hist_netease(code, start_date='', end_date=''):
 
 
 if __name__ == '__main__':
-    df = get_hist_netease(9)
+    code = '300104'
+    df = get_hist_netease(code)
     if df is None:
         print('failed to load csv')
         exit(-1)
@@ -51,4 +52,4 @@ if __name__ == '__main__':
     #df.reset_index(drop=True, inplace=True)
 
     print(df.tail())
-    df.to_csv('out_pd.csv', encoding='utf-8')
+    df.to_csv(code + '_D.csv', encoding='utf-8')
