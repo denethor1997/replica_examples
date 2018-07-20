@@ -15,12 +15,12 @@ from models.reg_cnn import reg_cnn
 from models.reg_mobilenet import reg_mobilenet
 
 path = './data/stock_data/'
-#code = 600082
+code = 600082
 #code = 600169
 #code = 600815
 #code = 600036
 #code = 300104
-code = 600201
+#code = 600201
 
 def get_data_label_dates(path, reverse=True):
     df = pd.read_csv(path)
@@ -66,7 +66,7 @@ def get_data_label_dates(path, reverse=True):
         dates = dates[::-1]
 
     slide_window = 15
-    dayn = 4 #start from 0
+    dayn = 1 #start from 0
     data = []
     label = []
     label_dates = []

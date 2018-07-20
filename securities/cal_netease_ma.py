@@ -18,6 +18,8 @@ def cal_netease_ma(csv_path):
         print('empty csv:%s' % csv_path)
         return None
 
+    df = df.loc[df['close'] > 0.01]
+
     df_reverse = df[::-1]
     df['ma5'] = df_reverse['close'].rolling(5,min_periods=1).mean()[::-1]
     df['ma10'] = df_reverse['close'].rolling(10,min_periods=1).mean()[::-1]

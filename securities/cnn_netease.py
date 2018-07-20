@@ -14,7 +14,7 @@ from models.rmse import *
 from models.reg_cnn import reg_cnn
 from models.reg_mobilenet import reg_mobilenet
 
-path = './data/stock_data/'
+path = './data/netease/hist_ma'
 code = 600082
 #code = 600169
 #code = 600815
@@ -58,7 +58,7 @@ def get_data_label_dates(path, reverse=True):
 
     return np.array(data), np.array(label), np.array(label_dates)
 
-hist_data_path = os.path.join(path, str(code) + '.csv')
+hist_data_path = os.path.join(path, str(code) + '_D.csv')
 
 if os.path.isfile(hist_data_path):
     pass
@@ -72,7 +72,7 @@ X, y, dates = get_data_label_dates(hist_data_path)
 
 dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
 
-X_train, X_test, y_train, y_test = create_Xt_Yt(X, y, 0.8)
+X_train, X_test, y_train, y_test = create_Xt_Yt(X, y, 0.95)
 print(X_train.shape)
 
 #padding
