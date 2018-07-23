@@ -56,7 +56,7 @@ def get_data_label_dates(path, reverse=True):
         dates = dates[::-1]
 
     slide_window = 15
-    dayn = 0 #start from 0
+    dayn = 1 #start from 0
     data = []
     label = []
     label_dates = []

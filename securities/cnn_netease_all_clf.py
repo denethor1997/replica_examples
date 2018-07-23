@@ -20,8 +20,8 @@ from models.clf_cnn import clf_cnn
 from sklearn.metrics import classification_report
 
 path = './data/netease/hist_ma/'
-code = 600082
-#code = 600169
+#code = 600082
+code = 600169
 #code = 600815
 #code = 600036
 #code = 300104
