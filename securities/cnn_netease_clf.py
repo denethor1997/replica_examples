@@ -17,12 +17,13 @@ from models.clf_cnn import clf_cnn
 #from models.reg_mobilenet import reg_mobilenet
 
 path = './data/netease/hist_ma'
-code = 600082
+#code = 600082
 #code = 600169
 #code = 600815
 #code = 600036
 #code = 300104
 #code = 600201
+code = '002608'
 
 snapshot_dir = './snapshots/cnn_netease_clf'
 if not os.path.exists(snapshot_dir):
