@@ -56,13 +56,13 @@ def get_data_label_dates(path, reverse=True):
         dates = dates[::-1]
 
     slide_window = 15
-    dayn = 5 #start from 0
+    dayn = 0 #start from 0
     data = []
     label = []
     label_dates = []
     for i in range(len(dates) - slide_window - 1 - dayn):
         data.append(prices[i:i + slide_window])
-        label.append([1,0] if close_prices[i + slide_window + dayn] - close_prices[i + slide_window] > 0 else [0,1])
+        label.append([1,0] if close_prices[i + slide_window + dayn] - close_prices[i + slide_window - 1] > 0 else [0,1])
         label_dates.append(dates[i + slide_window + dayn])
 
     return np.array(data), np.array(label), np.array(label_dates)
