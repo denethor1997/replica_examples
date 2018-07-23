@@ -16,14 +16,16 @@ from models.rmse import *
 from models.clf_cnn import clf_cnn
 #from models.reg_mobilenet import reg_mobilenet
 
+from sklearn.metrics import classification_report
+
 path = './data/netease/hist_ma'
 #code = 600082
 #code = 600169
 #code = 600815
-#code = 600036
+code = 600036
 #code = 300104
 #code = 600201
-code = '002608'
+#code = '002608'
 
 snapshot_dir = './snapshots/cnn_netease_clf'
 if not os.path.exists(snapshot_dir):
@@ -54,7 +56,7 @@ def get_data_label_dates(path, reverse=True):
         dates = dates[::-1]
 
     slide_window = 15
-    dayn = 1 #start from 0
+    dayn = 5 #start from 0
     data = []
     label = []
     label_dates = []
@@ -82,9 +84,14 @@ dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
 X_train, X_test, y_train, y_test = create_Xt_Yt(X, y, 0.95)
 print(X_train.shape)
 
+total = 32
+pad_h_l = (total - X_train.shape[1])//2
+pad_h_r = total - X_train.shape[1] - pad_h_l
+pad_w_t = (total - X_train.shape[2])//2
+pad_w_b = total - X_train.shape[2] - pad_w_t
 #padding
-X_train = np.pad(X_train, ((0,0), (11,11), (14,14)),'constant')
-X_test = np.pad(X_test, ((0,0), (11,11), (14,14)),'constant')
+X_train = np.pad(X_train, ((0,0), (pad_h_l,pad_h_r), (pad_w_t,pad_w_b)),'constant')
+X_test = np.pad(X_test, ((0,0), (pad_h_l,pad_h_r), (pad_w_t,pad_w_b)),'constant')
 print(X_train.shape)
 
 X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], X_train.shape[2], 1))
@@ -126,10 +133,15 @@ print("%s: %.2f%%" % (model.metrics_names[1], score[1] * 100))
 
 os.rename(best_cp_path, best_cp_path.replace('@', str(score[1])))
 
-"""
-print score
-pred_y_test = model.predict(X_test)
+pred_y_test = model.predict_classes(X_test)
+#print(pred_y_test)
+pred_y_test = pred_y_test.astype(np.int64)
+#print(pred_y_test)
+y_test = np.argmax(y_test, axis=1)
+#print(y_test)
+print(classification_report(y_test, pred_y_test))
 
+"""
 # means of val
 my_rmse = rmse(pred_y_test, y_test)
 print "rmse = ", my_rmse
