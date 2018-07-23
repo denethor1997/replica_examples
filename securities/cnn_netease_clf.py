@@ -19,10 +19,10 @@ from models.clf_cnn import clf_cnn
 from sklearn.metrics import classification_report
 
 path = './data/netease/hist_ma'
-#code = 600082
+code = 600082
 #code = 600169
 #code = 600815
-code = 600036
+#code = 600036
 #code = 300104
 #code = 600201
 #code = '002608'
@@ -62,7 +62,7 @@ def get_data_label_dates(path, reverse=True):
     label_dates = []
     for i in range(len(dates) - slide_window - 1 - dayn):
         data.append(prices[i:i + slide_window])
-        label.append([1,0] if close_prices[i + slide_window + dayn] - close_prices[i] > 0 else [0,1])
+        label.append([1,0] if close_prices[i + slide_window + dayn] - close_prices[i + slide_window] > 0 else [0,1])
         label_dates.append(dates[i + slide_window + dayn])
 
     return np.array(data), np.array(label), np.array(label_dates)

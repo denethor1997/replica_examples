@@ -91,7 +91,7 @@ def get_data_label_dates(path, reverse=True):
     label_dates = []
     for i in range(len(dates) - slide_window - 1 - dayn):
         data.append(features[i:i + slide_window])
-        label.append([1,0] if targets[i + slide_window + dayn] - targets[i] > 0 else [0,1])
+        label.append([1,0] if targets[i + slide_window + dayn] - targets[i + slide_window] > 0 else [0,1])
         label_dates.append(dates[i + slide_window + dayn])
 
     return np.array(data), np.array(label), np.array(label_dates)
