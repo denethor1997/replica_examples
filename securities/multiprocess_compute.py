@@ -52,7 +52,7 @@ stock_code_end_sh = 600009 #603999
 stock_code_start_sz = 2
 stock_code_end_sz = 9 #2815
 
-#download_economy()
+download_economy()
 
 stock_codes = [code for code in range(stock_code_start_sh, stock_code_end_sh)] #603996
 
@@ -178,7 +178,7 @@ def compute_code(code):
         return
 # for stock in stock_codes:
 #     compute_code(stock)
-
+"""
 #并行化
 from multiprocessing import Pool
 
@@ -191,8 +191,9 @@ results = pool.map(compute_code, stock_codes)
 #close the pool and wait for the work to finish
 pool.close()
 pool.join()
-
-
+"""
+compute_code(600082)
+exit(-1)
 
 # 
 sort = sorted(acc_result, key=lambda x: (x[1]), reverse=True)

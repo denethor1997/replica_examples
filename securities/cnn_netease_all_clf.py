@@ -20,8 +20,8 @@ from models.clf_cnn import clf_cnn
 from sklearn.metrics import classification_report
 
 path = './data/netease/hist_ma/'
-#code = 600082
-code = 600169
+code = 600082
+#code = 600169
 #code = 600815
 #code = 600036
 #code = 300104
@@ -63,18 +63,18 @@ def get_data_label_dates(path, reverse=True):
         if 'turnover' in row:
             day_prices.append(row['turnover'])
 
-        """
+         
         row_date = row['date']
         tokens = row_date.split('-')
         real_date = date(int(tokens[0]), int(tokens[1]), int(tokens[2]))
         day_prices.append(real_date.month/12.0)
         day_prices.append(real_date.day/31.0)
         day_prices.append(real_date.weekday()/7.0)
-        """ 
+        
        
         features.append(day_prices + volumes[index].tolist())
 
-        #close_prices.append(row['close'])
+        #targets.append(row['close'])
         targets.append(row['ma5'])
         
         dates.append(row['date'])
@@ -85,7 +85,7 @@ def get_data_label_dates(path, reverse=True):
         dates = dates[::-1]
 
     slide_window = 15
-    dayn = 1 #start from 0
+    dayn = 2 #start from 0
     data = []
     label = []
     label_dates = []
