@@ -14,8 +14,9 @@ from keras.callbacks import ModelCheckpoint
 
 from utils.load_data import *
 from models.rmse import *
-from models.clf_cnn import clf_cnn
+from models.clf_cnn import clf_cnn, clf_cnn_prelu
 #from models.reg_mobilenet import reg_mobilenet
+
 
 from sklearn.metrics import classification_report
 
@@ -73,6 +74,7 @@ def get_data_label_dates(path, reverse=True):
         
        
         features.append(day_prices + volumes[index].tolist())
+        #features.append(day_prices)
 
         #targets.append(row['close'])
         targets.append(row['ma5'])
@@ -85,7 +87,7 @@ def get_data_label_dates(path, reverse=True):
         dates = dates[::-1]
 
     slide_window = 15
-    dayn = 2 #start from 0
+    dayn = 3 #start from 0
     data = []
     label = []
     label_dates = []
@@ -135,7 +137,7 @@ print(X_train.shape)
 print(X_train[0])
 """
 
-model = clf_cnn((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
 
 best_cp_path = os.path.join(snapshot_dir, str(code) + '_D_@.hdf5')
 model_cp = ModelCheckpoint(best_cp_path, save_best_only=True, monitor='val_acc', mode='max')
