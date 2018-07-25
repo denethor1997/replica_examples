@@ -121,10 +121,13 @@ def get_data_label_dates(path, reverse=True):
 
 def train_model_by_code(code):
     hist_data_path = os.path.join(path, str(code) + '_D.csv')
-    
+   
+    log.write('training model for %s...\n' % code)
+
     if not os.path.isfile(hist_data_path):
         print('hist data not exists:%s' % hist_data_path)
-        exit(-1)
+        log.write('hist data not exists:%s\n' % hist_data_path)
+        return
     
     X, y, dates = get_data_label_dates(hist_data_path)
     #X, y, dates = get_data_label_dates(hist_data_path_fq, reverse=False)
@@ -133,6 +136,11 @@ def train_model_by_code(code):
     
     X_train, X_test, y_train, y_test = create_Xt_Yt(X, y, 0.95)
     print(X_train.shape)
+    if X_train.shape[0] <= 0:
+        print('train data empty:%s' % code)
+        log.write('train data empty:%s\n' % code)
+        return
+        
     
     total = 32
     pad_h_l = (total - X_train.shape[1])//2
