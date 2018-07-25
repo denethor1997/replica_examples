@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import os
 import time
-from datetime import date
+from datetime import date, datetime
 
 import numpy as np
 from sklearn import preprocessing
@@ -29,9 +29,8 @@ code = 600082
 #code = 600201
 #code = '002608'
 
-stock_codes = [600082, 600169, 600036, 600201, 300104]
+#stock_codes = [600082, 600169, 600036, 600201, 300104]
 
-"""
 #get all codes
 today = datetime.now().strftime('%Y-%m-%d')
 df = ts.get_day_all(today)
@@ -41,7 +40,7 @@ if df is None or df.empty:
     exit(-1)
 
 stock_codes = df['code'].tolist()
-"""
+
 
 snapshot_dir = './snapshots_pick/train_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
@@ -161,8 +160,9 @@ def train_model_by_code(code):
     max_score = 0
     max_index = -1
     max_cp_path = None
-    score_threshold = 0.54
-    for i in range(4):
+    score_threshold = 0 #0.54
+    for i in range(5):
+        #model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
         cp_path = os.path.join(snapshot_dir, str(code) + '_D_' + str(i) + '.hdf5')
         model_cp = ModelCheckpoint(cp_path, save_best_only=True, monitor='val_acc', mode='max')
         cb_lists = [model_cp]
@@ -178,6 +178,7 @@ def train_model_by_code(code):
     
         model.load_weights(filepath=cp_path)
         score = model.evaluate(X_test, y_test, batch_size=50)
+        log.write('%s iter %s score:%.2f%%\n' % (code, i, score[1] * 100))
     
         if score[1] > max_score: 
             max_score = score[1]
