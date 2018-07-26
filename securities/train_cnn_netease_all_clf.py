@@ -17,8 +17,14 @@ from models.rmse import *
 from models.clf_cnn import clf_cnn, clf_cnn_prelu
 #from models.reg_mobilenet import reg_mobilenet
 
-
 from sklearn.metrics import classification_report
+
+import tensorflow as tf
+import keras.backend.tensorflow_backend as KTF
+
+gpu_options = tf.GPUOptions(allow_growth=True)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+KTF.set_session(sess)
 
 path = './data/netease/hist_ma/'
 code = 600082
@@ -169,7 +175,7 @@ def train_model_by_code(code):
     max_index = -1
     max_cp_path = None
     score_threshold = 0 #0.54
-    for i in range(5):
+    for i in range(3):
         #model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
         cp_path = os.path.join(snapshot_dir, str(code) + '_D_' + str(i) + '.hdf5')
         model_cp = ModelCheckpoint(cp_path, save_best_only=True, monitor='val_acc', mode='max')
@@ -216,7 +222,9 @@ def train_model_by_code(code):
     #print(y_test)
     print(classification_report(y_test, pred_y_test))
 
-for code in stock_codes:
+start_index = 2652 #1768 #884 #0
+end_index = -1 #2652 #884
+for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
     log.flush()
 
