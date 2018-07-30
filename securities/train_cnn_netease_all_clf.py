@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import os
 import time
+import gc
 from datetime import date, datetime
 
 import numpy as np
@@ -11,6 +12,7 @@ import tushare as ts
 import pandas as pd
 
 from keras.callbacks import ModelCheckpoint
+from keras import backend as K
 
 from utils.load_data import *
 from models.rmse import *
@@ -39,7 +41,7 @@ code = 600082
 
 #get all codes
 today = datetime.now().strftime('%Y-%m-%d')
-df = ts.get_day_all(today)
+df = ts.get_day_all()
 
 if df is None or df.empty:
     print('failed to get codes')
@@ -170,13 +172,13 @@ def train_model_by_code(code):
     print(X_train[0])
     """
     
-    model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+    #model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
     max_score = 0
     max_index = -1
     max_cp_path = None
     score_threshold = 0 #0.54
     for i in range(3):
-        #model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+        model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
         cp_path = os.path.join(snapshot_dir, str(code) + '_D_' + str(i) + '.hdf5')
         model_cp = ModelCheckpoint(cp_path, save_best_only=True, monitor='val_acc', mode='max')
         cb_lists = [model_cp]
@@ -200,6 +202,10 @@ def train_model_by_code(code):
             if score[1] > score_threshold:
                 max_index = i
                 max_cp_path = cp_path
+
+        del model
+        K.clear_session()
+        gc.collect()
     
     if max_index < 0:
         print('No valid model:%s' % (code))
@@ -212,7 +218,7 @@ def train_model_by_code(code):
     best_cp_path = os.path.join(pick_dir, '%s_D_%s.hdf5' % (code, max_score))
     os.rename(max_cp_path, best_cp_path)
     
-    
+    model = clf_cnn_prelu((X_test.shape[1], X_test.shape[2], X_test.shape[3]))
     model.load_weights(filepath=best_cp_path)
     pred_y_test = model.predict_classes(X_test)
     #print(pred_y_test)
@@ -222,8 +228,14 @@ def train_model_by_code(code):
     #print(y_test)
     print(classification_report(y_test, pred_y_test))
 
-start_index = 2652 #1768 #884 #0
-end_index = -1 #2652 #884
+    del X_train
+    del X_test
+    del model
+    K.clear_session()
+    gc.collect()
+
+start_index = 1768 #884 #0
+end_index =  2652 #884
 for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
     log.flush()
