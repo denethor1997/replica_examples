@@ -17,17 +17,25 @@ from models.rmse import *
 from models.clf_cnn import clf_cnn, clf_cnn_prelu
 #from models.reg_mobilenet import reg_mobilenet
 
-
 from sklearn.metrics import classification_report
 
+import tensorflow as tf
+import keras.backend.tensorflow_backend as KTF
+
+gpu_options = tf.GPUOptions(allow_growth=True)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+KTF.set_session(sess)
+
+
 path = './data/netease/hist_ma/'
-code = 600082
+#code = 600082
 #code = 600169
 #code = 600815
 #code = 600036
 #code = 300104
 #code = 600201
 #code = '002608'
+code = 603733
 
 snapshot_dir = './snapshots/cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
@@ -145,7 +153,7 @@ cb_lists = [model_cp]
 
 model.fit(X_train,
           y_train,
-          epochs=70,
+          epochs=30,
           batch_size=64,
           verbose=1,
           shuffle=True,
@@ -170,9 +178,32 @@ pred_y_test = pred_y_test.astype(np.int64)
 #print(pred_y_test)
 y_test = np.argmax(y_test, axis=1)
 #print(y_test)
-print(classification_report(y_test, pred_y_test))
+report = classification_report(y_test, pred_y_test)
+print(report)
+tokens = report.split('\n')
+t0 = filter(None, tokens[2].split(' '))
+print('%s,%s,%s'%(t0[0],t0[1],t0[2]))
 
 """
+print(y_test)
+print(pred_y_test)
+all_up = len([x for x in y_test if x == 0])
+correct_up = 0
+
+all_down = len(y_test) - all_up
+correct_down = 0
+for index,val in enumerate(y_test):
+    if val == 0 and pred_y_test[index] == 0:
+        correct_up += 1
+    elif val == 1 and pred_y_test[index] == 1:
+        correct_down +=1
+
+acc_up = correct_up / (float(all_up) + 0.00000001)
+acc_down = correct_down / (float(all_down) + 0.00000001)
+
+print('acc_up:%.2f%%,all_up:%s,correct_up:%s,acc_down:%.2f%%,all_down:%s,correct_down:%s' % (acc_up*100,all_up,correct_up,acc_down*100,all_down,correct_down))
+
+
 print score
 pred_y_test = model.predict(X_test)
 

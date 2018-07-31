@@ -139,7 +139,11 @@ def train_model_by_code(code):
     
     X, y, dates = get_data_label_dates(hist_data_path)
     #X, y, dates = get_data_label_dates(hist_data_path_fq, reverse=False)
-    
+    if X.shape[0] < 400:
+        log.write('not enough hist data %s:%s\n' % (X.shape[0], code))
+        return
+
+
     dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
     
     X_train, X_test, y_train, y_test = create_Xt_Yt(X, y, 0.95)
@@ -172,13 +176,13 @@ def train_model_by_code(code):
     print(X_train[0])
     """
     
-    #model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+    model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
     max_score = 0
     max_index = -1
     max_cp_path = None
     score_threshold = 0 #0.54
-    for i in range(3):
-        model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+    for i in range(4):
+        #model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
         cp_path = os.path.join(snapshot_dir, str(code) + '_D_' + str(i) + '.hdf5')
         model_cp = ModelCheckpoint(cp_path, save_best_only=True, monitor='val_acc', mode='max')
         cb_lists = [model_cp]
@@ -203,9 +207,13 @@ def train_model_by_code(code):
                 max_index = i
                 max_cp_path = cp_path
 
-        del model
-        K.clear_session()
-        gc.collect()
+        #del model
+        #K.clear_session()
+        #gc.collect()
+ 
+    del model
+    K.clear_session()
+    gc.collect()
     
     if max_index < 0:
         print('No valid model:%s' % (code))
@@ -214,28 +222,42 @@ def train_model_by_code(code):
     
     print('best snapshot score:%.2f%%' % (max_score * 100) )
     log.write('%s best score:%.2f%%\n' % (code, max_score * 100))
-
-    best_cp_path = os.path.join(pick_dir, '%s_D_%s.hdf5' % (code, max_score))
-    os.rename(max_cp_path, best_cp_path)
-    
+   
     model = clf_cnn_prelu((X_test.shape[1], X_test.shape[2], X_test.shape[3]))
-    model.load_weights(filepath=best_cp_path)
+    model.load_weights(filepath=max_cp_path)
     pred_y_test = model.predict_classes(X_test)
     #print(pred_y_test)
     pred_y_test = pred_y_test.astype(np.int64)
     #print(pred_y_test)
     y_test = np.argmax(y_test, axis=1)
     #print(y_test)
-    print(classification_report(y_test, pred_y_test))
+    report = classification_report(y_test, pred_y_test)
+    print(report)
+    tokens = report.split('\n')
+    t0 = filter(None, tokens[2].split(' '))
+    if len(t0) < 5:
+        t0 = [-1,-1,-1,-1,-1]
+    p0 = t0[1]
+    r0 = t0[2]
+    s0 = t0[4]
+    t1 = filter(None, tokens[3].split(' '))
+    if len(t1) < 5:
+        t1 = [-1,-1,-1,-1,-1]
+    p1 = t1[1]
+    r1 = t1[2]
+    s1 = t1[4]
 
+    best_cp_path = os.path.join(pick_dir, '%s_D_%s@%s_%s@%s_%s@%s_%s.hdf5' % (code, max_score, p0, p1, r0, r1, s0, s1))
+    os.rename(max_cp_path, best_cp_path)
+ 
     del X_train
     del X_test
     del model
     K.clear_session()
     gc.collect()
 
-start_index = 1768 #884 #0
-end_index =  2652 #884
+start_index = 0 #2652 #1768 #884 #0
+end_index = 884
 for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
     log.flush()
