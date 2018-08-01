@@ -25,7 +25,7 @@ stock_codes += [code for code in range(stock_code_start_sz, stock_code_end_sz)]
 """
 
 today = datetime.now().strftime('%Y-%m-%d')
-df = ts.get_day_all(today)
+df = ts.get_day_all()
 
 if df is None or df.empty:
     print('failed to get codes')
