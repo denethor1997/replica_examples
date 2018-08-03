@@ -103,3 +103,5 @@ ENV/
 data
 snapshots*
 bak
+tmp
+temp

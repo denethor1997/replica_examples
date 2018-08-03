@@ -14,7 +14,7 @@ from keras.callbacks import ModelCheckpoint
 
 from utils.load_data import *
 from models.rmse import *
-from models.clf_cnn import clf_cnn, clf_cnn_prelu
+from models.clf_cnn import *
 #from models.reg_mobilenet import reg_mobilenet
 
 from sklearn.metrics import classification_report
@@ -145,7 +145,7 @@ print(X_train.shape)
 print(X_train[0])
 """
 
-model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+model = clf_cnn_prelu_categorical((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
 
 best_cp_path = os.path.join(snapshot_dir, str(code) + '_D_@.hdf5')
 model_cp = ModelCheckpoint(best_cp_path, save_best_only=True, monitor='val_acc', mode='max')

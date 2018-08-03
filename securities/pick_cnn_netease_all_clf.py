@@ -20,6 +20,14 @@ from models.clf_cnn import clf_cnn, clf_cnn_prelu
 
 from sklearn.metrics import classification_report
 
+import tensorflow as tf
+import keras.backend.tensorflow_backend as KTF
+
+gpu_options = tf.GPUOptions(allow_growth=True)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+KTF.set_session(sess)
+
+
 data_dir = './data/netease/hist_ma/'
 code = 600082
 #code = 600169
@@ -29,11 +37,24 @@ code = 600082
 #code = 600201
 #code = '002608'
 
-stock_codes = [600082, 600169, 600036, 600201]
+#stock_codes = [600082, 600169, 600036, 600201]
+
+df = ts.get_day_all()
+
+if df is None or df.empty:
+    print('failed to get codes')
+    exit(-1)
+
+stock_codes = df['code'].tolist()
+
 
 snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
-    os.makedirs(snapshot_dir)
+    print('snapshot dir not exists:%s' % snapshot_dir)
+    exit(-1)
+
+log_path = os.path.join('snapshots_pick', 'pick.log')
+log = open(log_path, 'w')
 
 def get_data_label_dates(path, reverse=True):
     df = pd.read_csv(path)
@@ -115,7 +136,13 @@ def test_model_by_code(code):
     
     X_test = X[-1:]
     y_test = y[-1:]
+    date_test = dates[-1:]
     print(X_test.shape)
+    print(date_test)
+
+    if (X_test.shape[0] <= 0):
+        print('no data for %s' % code)
+        return [0]
     
     total = 32
     pad_h_l = (total - X_test.shape[1])//2
@@ -144,7 +171,11 @@ def test_model_by_code(code):
         if path.startswith(str(code) + '_D'):
             best_cp_path = os.path.join(snapshot_dir, path)
             break
-    
+   
+    if best_cp_path is None:
+        print('no model for %s' % code)
+        return [0]
+
     model.load_weights(filepath=best_cp_path)
     pred_y_test = model.predict(X_test)
 
@@ -154,6 +185,8 @@ code_scores = []
 for code in stock_codes:
     pred_y = test_model_by_code(code)
     print('%s:%.2f%%' % (code, pred_y[0] * 100))
+    log.write('%s:%.2f%%\n' % (code, pred_y[0] * 100))
+    log.flush()
     code_scores.append(pred_y[0])
 
 sorted_code_scores = np.argsort(np.array(code_scores))
@@ -163,4 +196,7 @@ for i in range(3):
     max_index = sorted_code_scores[-1 - i]
     #print(max_index)
     print('picked %s:%.2f%%' % (stock_codes[max_index], code_scores[max_index] * 100))
+    log.write('picked %s:%.2f%%\n' % (stock_codes[max_index], code_scores[max_index] * 100))
+    log.flush()
 
+log.close()

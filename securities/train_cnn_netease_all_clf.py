@@ -139,7 +139,7 @@ def train_model_by_code(code):
     
     X, y, dates = get_data_label_dates(hist_data_path)
     #X, y, dates = get_data_label_dates(hist_data_path_fq, reverse=False)
-    if X.shape[0] < 400:
+    if X.shape[0] < 1000:
         log.write('not enough hist data %s:%s\n' % (X.shape[0], code))
         return
 
@@ -256,8 +256,8 @@ def train_model_by_code(code):
     K.clear_session()
     gc.collect()
 
-start_index = 0 #2652 #1768 #884 #0
-end_index = 884
+start_index = 1768 #2652 #1768 #884 #0
+end_index = 2652
 for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
     log.flush()
