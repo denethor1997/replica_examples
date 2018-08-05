@@ -4,6 +4,7 @@ import datetime as dt
 import os
 import time
 from datetime import date
+import gc
 
 import numpy as np
 from sklearn import preprocessing
@@ -11,10 +12,11 @@ import tushare as ts
 import pandas as pd
 
 from keras.callbacks import ModelCheckpoint
+from keras import backend as K
 
 from utils.load_data import *
 from models.rmse import *
-from models.clf_cnn import clf_cnn, clf_cnn_prelu
+from models.clf_cnn import *
 #from models.reg_mobilenet import reg_mobilenet
 
 
@@ -127,22 +129,23 @@ def test_model_by_code(code):
     
     if not os.path.isfile(hist_data_path):
         print('hist data not exists:%s' % hist_data_path)
-        exit(-1)
+        return [0], ''
     
     X, y, dates = get_data_label_dates(hist_data_path)
     #X, y, dates = get_data_label_dates(hist_data_path_fq, reverse=False)
     
     dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
-    
-    X_test = X[-1:]
-    y_test = y[-1:]
-    date_test = dates[-1:]
+   
+    pick_index = -6
+    X_test = X[pick_index:]
+    y_test = y[pick_index:]
+    date_test = dates[pick_index:]
     print(X_test.shape)
     print(date_test)
 
     if (X_test.shape[0] <= 0):
         print('no data for %s' % code)
-        return [0]
+        return [0], '', -1
     
     total = 32
     pad_h_l = (total - X_test.shape[1])//2
@@ -164,7 +167,7 @@ def test_model_by_code(code):
     print(X_train[0])
     """
     
-    model = clf_cnn_prelu((X_test.shape[1], X_test.shape[2], X_test.shape[3]))
+    model = clf_cnn_prelu_categorical((X_test.shape[1], X_test.shape[2], X_test.shape[3]))
    
     best_cp_path = None
     for path in os.listdir(snapshot_dir):
@@ -174,18 +177,22 @@ def test_model_by_code(code):
    
     if best_cp_path is None:
         print('no model for %s' % code)
-        return [0]
+        return [0], '', -1
 
     model.load_weights(filepath=best_cp_path)
     pred_y_test = model.predict(X_test)
 
-    return pred_y_test.ravel()
+    del model
+    K.clear_session()
+    gc.collect()
+
+    return pred_y_test.ravel(), best_cp_path, y_test.ravel()
 
 code_scores = []
 for code in stock_codes:
-    pred_y = test_model_by_code(code)
+    pred_y, best_cp_path, y_test = test_model_by_code(code)
     print('%s:%.2f%%' % (code, pred_y[0] * 100))
-    log.write('%s:%.2f%%\n' % (code, pred_y[0] * 100))
+    log.write('%s(%s):%.2f%%, label:%s\n' % (code, best_cp_path, pred_y[0] * 100, y_test))
     log.flush()
     code_scores.append(pred_y[0])
 

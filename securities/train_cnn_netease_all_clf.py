@@ -16,7 +16,7 @@ from keras import backend as K
 
 from utils.load_data import *
 from models.rmse import *
-from models.clf_cnn import clf_cnn, clf_cnn_prelu
+from models.clf_cnn import *
 #from models.reg_mobilenet import reg_mobilenet
 
 from sklearn.metrics import classification_report
@@ -176,7 +176,7 @@ def train_model_by_code(code):
     print(X_train[0])
     """
     
-    model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+    model = clf_cnn_prelu_categorical((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
     max_score = 0
     max_index = -1
     max_cp_path = None
@@ -256,8 +256,8 @@ def train_model_by_code(code):
     K.clear_session()
     gc.collect()
 
-start_index = 1768 #2652 #1768 #884 #0
-end_index = 2652
+start_index = 2652 #2652 #1768 #884 #0
+end_index = -1
 for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
     log.flush()
