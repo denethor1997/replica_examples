@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import os
 import time
-from datetime import date
+from datetime import date, datetime
 import gc
 
 import numpy as np
@@ -39,8 +39,8 @@ code = 600082
 #code = 600201
 #code = '002608'
 
-#stock_codes = [600082, 600169, 600036, 600201]
-
+stock_codes = [600082, 600169, 600036, 600201, 600400, 600448, 600536, 600339, 600103, 600166]
+"""
 df = ts.get_day_all()
 
 if df is None or df.empty:
@@ -48,14 +48,16 @@ if df is None or df.empty:
     exit(-1)
 
 stock_codes = df['code'].tolist()
-
+"""
+pick_index = -25
 
 snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
     print('snapshot dir not exists:%s' % snapshot_dir)
     exit(-1)
 
-log_path = os.path.join('snapshots_pick', 'pick.log')
+ts = str(datetime.now()).replace(' ', '@').replace(':', '_')
+log_path = os.path.join('snapshots_pick', 'pick_%s.log'%ts)
 log = open(log_path, 'w')
 
 def get_data_label_dates(path, reverse=True):
@@ -129,23 +131,32 @@ def test_model_by_code(code):
     
     if not os.path.isfile(hist_data_path):
         print('hist data not exists:%s' % hist_data_path)
-        return [0], ''
+        return [0], '', -1, ''
     
     X, y, dates = get_data_label_dates(hist_data_path)
     #X, y, dates = get_data_label_dates(hist_data_path_fq, reverse=False)
     
     dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
    
-    pick_index = -6
-    X_test = X[pick_index:]
-    y_test = y[pick_index:]
-    date_test = dates[pick_index:]
+    X_test = X[pick_index:pick_index + 1]
+    y_test = y[pick_index:pick_index + 1]
+    date_test = dates[pick_index:pick_index + 1]
     print(X_test.shape)
     print(date_test)
+    #log.write('%s\n'%date_test)
 
     if (X_test.shape[0] <= 0):
         print('no data for %s' % code)
-        return [0], '', -1
+        return [0], '', -1, date_test
+
+    close1 = X_test[0][-1][1]
+    close2 = X_test[0][-2][1]
+    close4 = X_test[0][-4][1]
+    close5 = X_test[0][-5][1]
+    if close1 + close2 > (close4 + close5)*1.01:
+        print('ignore data for %s(%s,%s,%s,%s)' % (code,close1,close2,close4,close5))
+        return [0], '', -1, date_test
+
     
     total = 32
     pad_h_l = (total - X_test.shape[1])//2
@@ -177,7 +188,7 @@ def test_model_by_code(code):
    
     if best_cp_path is None:
         print('no model for %s' % code)
-        return [0], '', -1
+        return [0], '', -1, date_test
 
     model.load_weights(filepath=best_cp_path)
     pred_y_test = model.predict(X_test)
@@ -186,21 +197,25 @@ def test_model_by_code(code):
     K.clear_session()
     gc.collect()
 
-    return pred_y_test.ravel(), best_cp_path, y_test.ravel()
+    return pred_y_test.ravel(), best_cp_path, y_test.ravel(), date_test
 
 code_scores = []
 for code in stock_codes:
-    pred_y, best_cp_path, y_test = test_model_by_code(code)
+    pred_y, best_cp_path, y_test, date_test = test_model_by_code(code)
     print('%s:%.2f%%' % (code, pred_y[0] * 100))
-    log.write('%s(%s):%.2f%%, label:%s\n' % (code, best_cp_path, pred_y[0] * 100, y_test))
+    log.write('%s(%s):%.2f%%, label:%s, date:%s\n' % (code, best_cp_path, pred_y[0] * 100, y_test, date_test))
     log.flush()
     code_scores.append(pred_y[0])
 
 sorted_code_scores = np.argsort(np.array(code_scores))
 #print(sorted_code_scores)
 
-for i in range(3):
+for i in range(len(code_scores)):
     max_index = sorted_code_scores[-1 - i]
+
+    if code_scores[max_index] <= 0:
+        break
+
     #print(max_index)
     print('picked %s:%.2f%%' % (stock_codes[max_index], code_scores[max_index] * 100))
     log.write('picked %s:%.2f%%\n' % (stock_codes[max_index], code_scores[max_index] * 100))
