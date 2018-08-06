@@ -39,8 +39,8 @@ code = 600082
 #code = 600201
 #code = '002608'
 
-stock_codes = [600082, 600169, 600036, 600201, 600400, 600448, 600536, 600339, 600103, 600166]
-"""
+#stock_codes = [600082, 600169, 600036, 600201, 600400, 600448, 600536, 600339, 600103, 600166]
+
 df = ts.get_day_all()
 
 if df is None or df.empty:
@@ -48,8 +48,8 @@ if df is None or df.empty:
     exit(-1)
 
 stock_codes = df['code'].tolist()
-"""
-pick_index = -25
+
+pick_index = -32
 
 snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):

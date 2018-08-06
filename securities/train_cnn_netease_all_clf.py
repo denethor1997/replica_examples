@@ -247,7 +247,7 @@ def train_model_by_code(code):
     r1 = t1[2]
     s1 = t1[4]
 
-    best_cp_path = os.path.join(pick_dir, '%s_D_%s@%s_%s@%s_%s@%s_%s.hdf5' % (code, max_score, p0, p1, r0, r1, s0, s1))
+    best_cp_path = os.path.join(pick_dir, '%s_D@%s@%s_%s@%s_%s@%s_%s.hdf5' % (code, max_score, p0, p1, r0, r1, s0, s1))
     os.rename(max_cp_path, best_cp_path)
  
     del X_train
