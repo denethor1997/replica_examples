@@ -49,7 +49,7 @@ if df is None or df.empty:
 
 stock_codes = df['code'].tolist()
 
-pick_index = -32
+pick_index = -29
 
 snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
@@ -118,13 +118,46 @@ def get_data_label_dates(path, reverse=True):
     data = []
     label = []
     label_dates = []
-    for i in range(len(dates) - slide_window - 1 - dayn):
+    for i in range(len(dates) - slide_window - dayn):
         data.append(features[i:i + slide_window])
         label.append([1,0] if targets[i + slide_window + dayn] - targets[i + slide_window - 1] > 0 else [0,1])
         label_dates.append(dates[i + slide_window + dayn])
 
     return np.array(data), np.array(label), np.array(label_dates)
 
+def get_model_by_code(code):
+    best_cp_path = None
+    max_acc = 0.0
+    for path in os.listdir(snapshot_dir):
+        if path.startswith(str(code) + '_D'):
+            cp_path = os.path.join(snapshot_dir, path)
+            tokens = cp_path.split('@')
+            if len(tokens) < 4:
+                print('invalid path:%s'%cp_path)
+                continue
+
+            acc = float(tokens[1])
+            
+            precs = tokens[2].split('_')
+            up_prec = float(precs[0])
+            down_prec = float(precs[1])
+            
+            recall = tokens[3].split('_')
+            down_recall = float(recall[1])
+
+             
+            if acc < 0.7 or up_prec < 0.7 or down_prec < 0.7 or down_recall < 0.7:
+                continue
+            
+            if max_acc > acc:
+                continue
+            
+            max_acc = acc
+            best_cp_path = cp_path
+
+            break; #???
+    
+    return best_cp_path
 
 def test_model_by_code(code):
     hist_data_path = os.path.join(data_dir, str(code) + '_D.csv')
@@ -132,7 +165,21 @@ def test_model_by_code(code):
     if not os.path.isfile(hist_data_path):
         print('hist data not exists:%s' % hist_data_path)
         return [0], '', -1, ''
+ 
     
+    best_cp_path = get_model_by_code(code)
+    """
+    for path in os.listdir(snapshot_dir):
+        if path.startswith(str(code) + '_D'):
+            best_cp_path = os.path.join(snapshot_dir, path)
+            break
+    """
+
+    if best_cp_path is None:
+        print('no model for %s' % code)
+        return [0], '', -1, ''
+
+   
     X, y, dates = get_data_label_dates(hist_data_path)
     #X, y, dates = get_data_label_dates(hist_data_path_fq, reverse=False)
     
@@ -153,7 +200,7 @@ def test_model_by_code(code):
     close2 = X_test[0][-2][1]
     close4 = X_test[0][-4][1]
     close5 = X_test[0][-5][1]
-    if close1 + close2 > (close4 + close5)*1.01:
+    if close1 + close2 > (close4 + close5)*1.015:
         print('ignore data for %s(%s,%s,%s,%s)' % (code,close1,close2,close4,close5))
         return [0], '', -1, date_test
 
@@ -180,16 +227,6 @@ def test_model_by_code(code):
     
     model = clf_cnn_prelu_categorical((X_test.shape[1], X_test.shape[2], X_test.shape[3]))
    
-    best_cp_path = None
-    for path in os.listdir(snapshot_dir):
-        if path.startswith(str(code) + '_D'):
-            best_cp_path = os.path.join(snapshot_dir, path)
-            break
-   
-    if best_cp_path is None:
-        print('no model for %s' % code)
-        return [0], '', -1, date_test
-
     model.load_weights(filepath=best_cp_path)
     pred_y_test = model.predict(X_test)
 
@@ -200,6 +237,7 @@ def test_model_by_code(code):
     return pred_y_test.ravel(), best_cp_path, y_test.ravel(), date_test
 
 code_scores = []
+code_results = []
 for code in stock_codes:
     pred_y, best_cp_path, y_test, date_test = test_model_by_code(code)
     print('%s:%.2f%%' % (code, pred_y[0] * 100))
@@ -207,8 +245,17 @@ for code in stock_codes:
     log.flush()
     code_scores.append(pred_y[0])
 
+    ret = [pred_y[0],y_test,best_cp_path,date_test]
+    code_results.append(ret)
+
 sorted_code_scores = np.argsort(np.array(code_scores))
 #print(sorted_code_scores)
+
+high_total = 0
+high_correct = 0
+
+low_total = 0
+low_correct = 0
 
 for i in range(len(code_scores)):
     max_index = sorted_code_scores[-1 - i]
@@ -216,9 +263,25 @@ for i in range(len(code_scores)):
     if code_scores[max_index] <= 0:
         break
 
+    rets = code_results[max_index]
+    score = rets[0]
+    y_test = rets[1]
+    best_cp_path = rets[2]
+    date_test = rets[3]
     #print(max_index)
     print('picked %s:%.2f%%' % (stock_codes[max_index], code_scores[max_index] * 100))
-    log.write('picked %s:%.2f%%\n' % (stock_codes[max_index], code_scores[max_index] * 100))
+    log.write('picked %s:%.2f%%,%s,%s,%s\n' % (stock_codes[max_index], code_scores[max_index] * 100, y_test,date_test,best_cp_path))
     log.flush()
+
+    if score > 0.7:
+        high_total += 1
+        if y_test[0] == 1:
+            high_correct += 1
+    elif score > 0.5:
+        low_total += 1
+        if y_test[0] == 1:
+            low_correct += 1
+
+log.write('high:%s, low:%s\n'%(high_correct/float(high_total),low_correct/float(low_total)))
 
 log.close()
