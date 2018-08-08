@@ -39,7 +39,7 @@ code = 600082
 #code = 600201
 #code = '002608'
 
-#stock_codes = [600082, 600169, 600036, 600201, 600400, 600448, 600536, 600339, 600103, 600166]
+#stock_codes = [603699]
 
 df = ts.get_day_all()
 
@@ -49,9 +49,9 @@ if df is None or df.empty:
 
 stock_codes = df['code'].tolist()
 
-pick_index = -42
+pick_index = -9
 
-snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf'
+snapshot_dir = './snapshots_pick/bak_pick_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
     print('snapshot dir not exists:%s' % snapshot_dir)
     exit(-1)
@@ -155,7 +155,7 @@ def get_model_by_code(code):
             max_acc = acc
             best_cp_path = cp_path
 
-            break; #???
+            #break; #???
     
     return best_cp_path
 
@@ -282,6 +282,6 @@ for i in range(len(code_scores)):
         if y_test[0] == 1:
             low_correct += 1
 
-log.write('high:%s, low:%s\n'%(high_correct/float(high_total),low_correct/float(low_total)))
+log.write('high:%s, low:%s\n'%(high_correct/(high_total+0.0001),low_correct/(low_total+0.0001)))
 
 log.close()
