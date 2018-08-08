@@ -49,7 +49,7 @@ if df is None or df.empty:
 
 stock_codes = df['code'].tolist()
 
-pick_index = -29
+pick_index = -42
 
 snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
