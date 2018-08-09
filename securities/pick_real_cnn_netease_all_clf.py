@@ -49,7 +49,7 @@ if df is None or df.empty:
 
 stock_codes = df['code'].tolist()
 
-pick_index = -6
+pick_index = -1
 
 snapshot_dir = './snapshots_pick/bak_pick_cnn_netease_all_clf'
 if not os.path.exists(snapshot_dir):
@@ -201,7 +201,7 @@ def test_model_by_code(code):
     close5 = X_test[0][-5][1]
     if close1 + close2 > (close4 + close5)*1.015:
         print('ignore data for %s(%s,%s,%s,%s)' % (code,close1,close2,close4,close5))
-        return [0], '', date_test
+        return [0], 'ignore data', date_test
 
     
     total = 32
