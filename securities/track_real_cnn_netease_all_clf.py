@@ -32,7 +32,7 @@ KTF.set_session(sess)
 
 data_dir = './data/netease/hist_ma/'
 
-stock_codes = ['002351', 600851]
+stock_codes = ['002351', 600851, 600060, 600268, 600594, 600765, 600769, '002148', '002115']
 """
 df = ts.get_day_all()
 
@@ -50,7 +50,7 @@ if not os.path.exists(snapshot_dir):
     exit(-1)
 
 ts = str(datetime.now()).replace(' ', '@').replace(':', '_')
-log_path = os.path.join('snapshots_pick', 'real_%s.log'%ts)
+log_path = os.path.join('snapshots_pick', 'track_%s.log'%ts)
 log = open(log_path, 'w')
 
 def get_data_label_dates(path, reverse=True):
@@ -137,10 +137,10 @@ def get_model_by_code(code):
             recall = tokens[3].split('_')
             down_recall = float(recall[1])
 
-             
+            """ 
             if acc < 0.7 or up_prec < 0.7 or down_prec < 0.7 or down_recall < 0.7:
                 continue
-            
+            """
             if max_acc > acc:
                 continue
             
