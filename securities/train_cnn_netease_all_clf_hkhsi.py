@@ -4,6 +4,7 @@ import datetime as dt
 import os
 import time
 import gc
+import random
 from datetime import date, datetime
 
 import numpy as np
@@ -69,11 +70,11 @@ def get_data_dates_hkhsi():
 
     for index, row in df.iterrows():
         features = []
-        #features.append(row['open'])
+        features.append(row['open'])
         features.append(row['close'])
-        #features.append(row['high'])
-        #features.append(row['low'])
-        #features.append(row['volume'])
+        features.append(row['high'])
+        features.append(row['low'])
+        features.append(row['volume'])
         data.append(features)
     
         dates.append(row['date'])
@@ -84,7 +85,6 @@ def get_data_dates_hkhsi():
 
 hkhsi_data, hkhsi_dates = get_data_dates_hkhsi()
 print(hkhsi_data)
-exit(-1)
 
 def get_data_label_dates(path, reverse=True):
     df = pd.read_csv(path)
@@ -182,7 +182,10 @@ def train_model_by_code(code):
         print('train data empty:%s' % code)
         log.write('train data empty:%s\n' % code)
         return
-        
+
+    X_train = X
+    y_train = y
+
     
     total = 32
     pad_h_l = (total - X_train.shape[1])//2
