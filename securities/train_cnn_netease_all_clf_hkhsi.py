@@ -39,7 +39,7 @@ code = 600082
 #code = '002608'
 
 stock_codes = [600082, 600169]
-"""
+
 #get all codes
 today = datetime.now().strftime('%Y-%m-%d')
 df = ts.get_day_all()
@@ -49,7 +49,7 @@ if df is None or df.empty:
     exit(-1)
 
 stock_codes = df['code'].tolist()
-"""
+
 
 snapshot_dir = './snapshots_pick/train_cnn_netease_all_clf_hkhsi'
 if not os.path.exists(snapshot_dir):
@@ -289,8 +289,8 @@ def train_model_by_code(code):
     K.clear_session()
     gc.collect()
 
-start_index = 0 #2452 #1568 #712 #0
-end_index = -1
+start_index = 0 #2522 #1638 #762 #0
+end_index = 762
 for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
     log.flush()

@@ -27,6 +27,7 @@ def cal_netease_ma(csv_path):
     df['v_ma5'] = df_reverse['volume'].rolling(5,min_periods=1).mean()[::-1]
     df['v_ma10'] = df_reverse['volume'].rolling(10,min_periods=1).mean()[::-1]
     df['v_ma20'] = df_reverse['volume'].rolling(20,min_periods=1).mean()[::-1]
+    df['ma3'] = df_reverse['close'].rolling(3,min_periods=1).mean()[::-1]
     return df
 
 

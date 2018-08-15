@@ -51,14 +51,39 @@ stock_codes = df['code'].tolist()
 
 pick_index = -5
 
-snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf'
+snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf_hkhsi'
 if not os.path.exists(snapshot_dir):
     print('snapshot dir not exists:%s' % snapshot_dir)
     exit(-1)
 
 ts = str(datetime.now()).replace(' ', '@').replace(':', '_')
-log_path = os.path.join('snapshots_pick', 'pick_%s.log'%ts)
+log_path = os.path.join('snapshots_pick', 'pick_hkhsi_%s.log'%ts)
 log = open(log_path, 'w')
+
+def get_data_dates_hkhsi():
+    csvpath = './data/hkHSI_D.csv'
+    df = pd.read_csv(csvpath)
+    data = []
+    dates = []
+
+    for index, row in df.iterrows():
+        features = []
+        features.append(row['open'])
+        features.append(row['close'])
+        features.append(row['high'])
+        features.append(row['low'])
+        features.append(row['volume'])
+        data.append(features)
+    
+        dates.append(row['date'])
+
+    data = preprocessing.scale(data)
+
+    return np.array(data), np.array(dates) 
+
+hkhsi_data, hkhsi_dates = get_data_dates_hkhsi()
+print(hkhsi_data)
+
 
 def get_data_label_dates(path, reverse=True):
     df = pd.read_csv(path)
@@ -98,7 +123,12 @@ def get_data_label_dates(path, reverse=True):
         day_prices.append(real_date.month/12.0)
         day_prices.append(real_date.day/31.0)
         day_prices.append(real_date.weekday()/7.0)
-        
+ 
+        #add hkhsi index
+        for hkindex, hkdate in enumerate(hkhsi_dates):
+            if hkdate <= row_date:
+                day_prices += hkhsi_data[hkindex].tolist()
+                break
        
         features.append(day_prices + volumes[index].tolist())
         #features.append(day_prices)
