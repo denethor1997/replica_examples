@@ -51,13 +51,13 @@ stock_codes = df['code'].tolist()
 
 pick_index = -12
 
-snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf_hkhsi'
+snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf_hkhsi_ma3'
 if not os.path.exists(snapshot_dir):
     print('snapshot dir not exists:%s' % snapshot_dir)
     exit(-1)
 
 ts = str(datetime.now()).replace(' ', '@').replace(':', '_')
-log_path = os.path.join('snapshots_pick', 'pick_hkhsi_%s.log'%ts)
+log_path = os.path.join('snapshots_pick', 'pick_hkhsi_ma3_%s.log'%ts)
 log = open(log_path, 'w')
 
 def get_data_dates_hkhsi():
@@ -90,6 +90,7 @@ def get_data_label_dates(path, reverse=True):
     features = []
     targets = []
     dates = []
+    targets1 = []
 
     volumes = []
     for index, row in df.iterrows():
@@ -112,6 +113,7 @@ def get_data_label_dates(path, reverse=True):
         day_prices.append(row['ma5'])
         day_prices.append(row['ma10'])
         day_prices.append(row['ma20'])
+        day_prices.append(row['ma3'])
 
         if 'turnover' in row:
             day_prices.append(row['turnover'])
@@ -138,10 +140,13 @@ def get_data_label_dates(path, reverse=True):
         
         dates.append(row['date'])
 
+        targets1.append(row['ma3'])
+
     if reverse:
         features = features[::-1]
         targets = targets[::-1]
         dates = dates[::-1]
+        targets1 = targets1[::-1]
 
     slide_window = 15
     dayn = 3 #start from 0
@@ -150,7 +155,7 @@ def get_data_label_dates(path, reverse=True):
     label_dates = []
     for i in range(len(dates) - slide_window - dayn):
         data.append(features[i:i + slide_window])
-        label.append([1,0] if targets[i + slide_window + dayn] - targets[i + slide_window - 1] > 0 else [0,1])
+        label.append([1,0] if targets[i + slide_window + dayn] - targets1[i + slide_window - 1] > 0 else [0,1])
         label_dates.append(dates[i + slide_window + dayn])
 
     return np.array(data), np.array(label), np.array(label_dates)
