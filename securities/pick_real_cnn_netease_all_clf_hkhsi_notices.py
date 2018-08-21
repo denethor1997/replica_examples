@@ -40,7 +40,7 @@ code = 600082
 #code = '002608'
 
 #stock_codes = [600082, 600169, 600036, 600201, 600400, 600448, 600536, 600339, 600103, 600166]
-
+today = datetime.now().strftime('%Y-%m-%d')
 df = ts.get_day_all()
 
 if df is None or df.empty:
@@ -247,11 +247,16 @@ def test_model_by_code(code):
         return [0], 'no notices', date_test
 
     notice_count = 0
+    lastday = dates[pick_index]
+    currday = today
+    if pick_index != -1:
+        currday = dates[pick_index + 1]
+
     for index, row in notices.iterrows():
         row_date = str(row['date'])
-        if row_date < str(dates[pick_index - 1]):
+        if row_date < str(lastday):
             break
-        if row_date <= str(dates[pick_index]):
+        if row_date <= str(currday):
             notice_count += 1
 
     if notice_count <= 0:
