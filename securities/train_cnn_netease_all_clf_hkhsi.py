@@ -289,7 +289,7 @@ def train_model_by_code(code):
     K.clear_session()
     gc.collect()
 
-start_index = 2522 #2522 #1638 #762 #0
+start_index = 2522 #2572 #1688 #812 #0
 end_index = -1
 for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
