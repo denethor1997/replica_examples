@@ -39,8 +39,8 @@ code = 600082
 #code = 600201
 #code = '002608'
 
-#stock_codes = [600082, 600169, 600036, 600201, 600400, 600448, 600536, 600339, 600103, 600166]
-today = datetime.now().strftime('%Y-%m-%d')
+#stock_codes = [603699]
+
 df = ts.get_day_all()
 
 if df is None or df.empty:
@@ -49,24 +49,16 @@ if df is None or df.empty:
 
 stock_codes = df['code'].tolist()
 
-pick_index = -1
+pick_index = -7
 
-snapshot_dir = './snapshots_pick/bak_pick_cnn_netease_all_clf_hkhsi'
+snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf_hkhsi'
 if not os.path.exists(snapshot_dir):
     print('snapshot dir not exists:%s' % snapshot_dir)
     exit(-1)
 
-timestr = str(datetime.now()).replace(' ', '@').replace(':', '_')
-log_path = os.path.join('snapshots_pick', 'real_hkhsi_notice_%s.log'%timestr)
+ts = str(datetime.now()).replace(' ', '@').replace(':', '_')
+log_path = os.path.join('snapshots_pick', 'test_hkhsi_%s.log'%ts)
 log = open(log_path, 'w')
-
-def get_notices_by_code(code):
-    try:
-        notices = ts.get_notices(code=str(code))
-        return notices
-    except Exception as e:
-        print(e)
-        return None
 
 def get_data_dates_hkhsi():
     csvpath = './data/hkHSI_D.csv'
@@ -98,6 +90,7 @@ def get_data_label_dates(path, reverse=True):
     features = []
     targets = []
     dates = []
+    targets1 = []
 
     volumes = []
     for index, row in df.iterrows():
@@ -131,7 +124,7 @@ def get_data_label_dates(path, reverse=True):
         day_prices.append(real_date.month/12.0)
         day_prices.append(real_date.day/31.0)
         day_prices.append(real_date.weekday()/7.0)
-        
+ 
         #add hkhsi index
         for hkindex, hkdate in enumerate(hkhsi_dates):
             if hkdate <= row_date:
@@ -146,19 +139,23 @@ def get_data_label_dates(path, reverse=True):
         
         dates.append(row['date'])
 
+        targets1.append(row['close'])
+
     if reverse:
         features = features[::-1]
         targets = targets[::-1]
         dates = dates[::-1]
+        targets1 = targets1[::-1]
 
     slide_window = 15
-    dayn = 3 #start from 0
+    dayn = 0 #start from 0
     data = []
     label = []
     label_dates = []
-    for i in range(len(dates) - slide_window + 1):
+    for i in range(len(dates) - slide_window - dayn):
         data.append(features[i:i + slide_window])
-        label_dates.append(dates[i + slide_window - 1])
+        label.append([1,0] if targets1[i + slide_window + dayn] - targets1[i + slide_window - 1] > 0 else [0,1])
+        label_dates.append(dates[i + slide_window + dayn])
 
     return np.array(data), np.array(label), np.array(label_dates)
 
@@ -201,7 +198,7 @@ def test_model_by_code(code):
     
     if not os.path.isfile(hist_data_path):
         print('hist data not exists:%s' % hist_data_path)
-        return [0], '', ''
+        return [0], '', -1, ''
  
     
     best_cp_path = get_model_by_code(code)
@@ -214,7 +211,7 @@ def test_model_by_code(code):
 
     if best_cp_path is None:
         print('no model for %s' % code)
-        return [0], '', ''
+        return [0], '', -1, ''
 
    
     X, y, dates = get_data_label_dates(hist_data_path)
@@ -222,46 +219,25 @@ def test_model_by_code(code):
     
     dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
    
-    X_test = X[pick_index]
-    X_test = np.reshape(X_test, (1, X_test.shape[0], X_test.shape[1]))
-    date_test = dates[pick_index]
+    X_test = X[pick_index:pick_index + 1]
+    y_test = y[pick_index:pick_index + 1]
+    date_test = dates[pick_index:pick_index + 1]
     print(X_test.shape)
     print(date_test)
     #log.write('%s\n'%date_test)
 
     if (X_test.shape[0] <= 0):
         print('no data for %s' % code)
-        return [0], '', date_test
+        return [0], '', -1, date_test
 
     close1 = X_test[0][-1][1]
     close2 = X_test[0][-2][1]
     close4 = X_test[0][-4][1]
     close5 = X_test[0][-5][1]
-    if close1 + close2 > (close4 + close5)*1.015 or close1 > close2*1.02:
+    if close1 + close2 > (close4 + close5)*1.015:
         print('ignore data for %s(%s,%s,%s,%s)' % (code,close1,close2,close4,close5))
-        return [0], 'ignore data', date_test
-    
-    notices = get_notices_by_code(code)
-    if notices is None or notices.empty:
-        print('ignore data for no notices:%s' % code)
-        return [0], 'no notices', date_test
+        return [0], '', -1, date_test
 
-    notice_count = 0
-    lastday = dates[pick_index]
-    currday = today
-    if pick_index != -1:
-        currday = dates[pick_index + 1]
-
-    for index, row in notices.iterrows():
-        row_date = str(row['date'])
-        if row_date < str(lastday):
-            break
-        if row_date <= str(currday):
-            notice_count += 1
-
-    if notice_count <= 0:
-        print('ignore data for no notices:%s' % code)
-        return [0], 'no notices', date_test
     
     total = 32
     pad_h_l = (total - X_test.shape[1])//2
@@ -292,18 +268,18 @@ def test_model_by_code(code):
     K.clear_session()
     gc.collect()
 
-    return pred_y_test.ravel(), best_cp_path, date_test
+    return pred_y_test.ravel(), best_cp_path, y_test.ravel(), date_test
 
 code_scores = []
 code_results = []
 for code in stock_codes:
-    pred_y, best_cp_path, date_test = test_model_by_code(code)
+    pred_y, best_cp_path, y_test, date_test = test_model_by_code(code)
     print('%s:%.2f%%' % (code, pred_y[0] * 100))
-    log.write('%s(%s):%.2f%%, date:%s\n' % (code, best_cp_path, pred_y[0] * 100, date_test))
+    log.write('%s(%s):%.2f%%, label:%s, date:%s\n' % (code, best_cp_path, pred_y[0] * 100, y_test, date_test))
     log.flush()
     code_scores.append(pred_y[0])
 
-    ret = [pred_y[0],best_cp_path,date_test]
+    ret = [pred_y[0],y_test,best_cp_path,date_test]
     code_results.append(ret)
 
 sorted_code_scores = np.argsort(np.array(code_scores))
@@ -315,6 +291,9 @@ high_correct = 0
 low_total = 0
 low_correct = 0
 
+ignore_total = 0
+ignore_up = 0
+
 for i in range(len(code_scores)):
     max_index = sorted_code_scores[-1 - i]
 
@@ -323,11 +302,27 @@ for i in range(len(code_scores)):
 
     rets = code_results[max_index]
     score = rets[0]
-    best_cp_path = rets[1]
-    date_test = rets[2]
+    y_test = rets[1]
+    best_cp_path = rets[2]
+    date_test = rets[3]
     #print(max_index)
     print('picked %s:%.2f%%' % (stock_codes[max_index], code_scores[max_index] * 100))
-    log.write('picked %s:%.2f%%,%s,%s\n' % (stock_codes[max_index], code_scores[max_index] * 100, date_test,best_cp_path))
+    log.write('picked %s:%.2f%%,%s,%s,%s\n' % (stock_codes[max_index], code_scores[max_index] * 100, y_test,date_test,best_cp_path))
     log.flush()
+
+    if score > 0.7:
+        high_total += 1
+        if y_test[0] == 1:
+            high_correct += 1
+    elif score > 0.5:
+        low_total += 1
+        if y_test[0] == 1:
+            low_correct += 1
+    else:
+        ignore_total += 1
+        if y_test[0] == 1:
+            ignore_up += 1
+
+log.write('high:%s, low:%s, ignore:%s\n'%(high_correct/(high_total+0.0001),low_correct/(low_total+0.0001),ignore_up/(ignore_total + 0.0001)))
 
 log.close()
