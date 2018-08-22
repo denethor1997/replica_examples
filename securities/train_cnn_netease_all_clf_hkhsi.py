@@ -214,7 +214,7 @@ def train_model_by_code(code):
     max_index = -1
     max_cp_path = None
     score_threshold = 0 #0.54
-    for i in range(4):
+    for i in range(3):
         #model = clf_cnn_prelu((X_train.shape[1], X_train.shape[2], X_train.shape[3]))
         cp_path = os.path.join(snapshot_dir, str(code) + '_D_' + str(i) + '.hdf5')
         model_cp = ModelCheckpoint(cp_path, save_best_only=True, monitor='val_acc', mode='max')
@@ -289,7 +289,7 @@ def train_model_by_code(code):
     K.clear_session()
     gc.collect()
 
-start_index = 2522 #2572 #1688 #812 #0
+start_index = 2572 #2572 #1688 #812 #0
 end_index = -1
 for code in stock_codes[start_index:end_index]:
     train_model_by_code(code)
