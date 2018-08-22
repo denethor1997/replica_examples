@@ -51,7 +51,7 @@ stock_codes = df['code'].tolist()
 
 pick_index = -1
 
-snapshot_dir = './snapshots_pick/bak_pick_cnn_netease_all_clf_hkhsi'
+snapshot_dir = './snapshots_pick/pick_cnn_netease_all_clf_hkhsi'
 if not os.path.exists(snapshot_dir):
     print('snapshot dir not exists:%s' % snapshot_dir)
     exit(-1)

@@ -70,7 +70,7 @@ def update_netease_by_code(code, ktype='D'):
     log.write('load data done:%s\n' % code)
 
 for code in stock_codes:
-    time.sleep(0.5)   
+    time.sleep(0.3)   
 
     update_netease_by_code(code)
 
