@@ -14,7 +14,7 @@ stock_codes = [600082, 600169, 600036, '000999']
 
 today = datetime.now().strftime('%Y-%m-%d')
 
-pick_index = -2
+pick_index = -1
 
 df = ts.get_day_all()
 
@@ -25,7 +25,7 @@ if df is None or df.empty:
 stock_codes = df['code'].tolist()
 print('total codes:%s' % len(stock_codes))
 
-timestr = datetime.now().strftime('%Y-%m-%d')
+timestr = str(datetime.now()).replace(' ', '@').replace(':', '_')
 log_path = os.path.join('snapshots_pick', 'test_notices_%s.log'%timestr)
 log = open(log_path, 'w')
 
