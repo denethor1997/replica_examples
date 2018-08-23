@@ -40,8 +40,11 @@ for code in stock_codes:
     if notes is None or notes.empty:
         continue
 
+    titles = ''
     for index, row in notes.iterrows():
-        log.write('%s,%s,%s\n'%(code, row['date'], row['title'].encode('utf-8')))
+        titles += row['title'].encode('utf-8')
+
+    log.write('%s,%s,%s\n'%(code, row['date'], titles))
 
 #update_netease_by_code(600082)
 
