@@ -250,7 +250,7 @@ def test_model_by_code(code):
 
     note_titles = ''
     for index, row in notices.iterrows():
-        note_titles = row['title'].encode('utf-8') 
+        note_titles += row['title'].encode('utf-8') + ';'
 
     total = 32
     pad_h_l = (total - X_test.shape[1])//2
@@ -286,6 +286,9 @@ def test_model_by_code(code):
 code_scores = []
 code_results = []
 for code in stock_codes:
+    if str(code).startswith('3'):
+        continue
+
     pred_y, notes, date_test = test_model_by_code(code)
     print('%s:%.2f%%' % (code, pred_y[0] * 100))
     log.write('%s:%.2f%%, date:%s, notes:%s\n' % (code, pred_y[0] * 100, date_test, notes))

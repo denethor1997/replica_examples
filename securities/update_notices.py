@@ -33,6 +33,9 @@ def get_notices_by_code(code):
         return None
 
 for code in stock_codes:
+    if str(code).startswith('3'):
+        continue
+
     time.sleep(0.2)
     print('getting notices for %s'%code)
 
@@ -42,7 +45,7 @@ for code in stock_codes:
 
     titles = ''
     for index, row in notes.iterrows():
-        titles += row['title'].encode('utf-8')
+        titles += row['title'].encode('utf-8') + ';'
 
     log.write('%s,%s,%s\n'%(code, row['date'], titles))
 
