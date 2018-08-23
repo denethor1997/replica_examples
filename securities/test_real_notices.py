@@ -37,9 +37,7 @@ def get_notices_by_code(code, curdate):
         print(e)
         return None
 
-def get_label_dates(code, reverse=True):
-    path = os.path.join(data_dir, str(code) + '_D.csv')
-
+def get_label_dates(path, reverse=True):
     df = pd.read_csv(path)
     targets = []
     dates = []
@@ -76,7 +74,11 @@ for code in stock_codes:
     time.sleep(0.2)
     print('getting notices for %s'%code)
 
-    y, dates = get_label_dates(code)
+    path = os.path.join(data_dir, str(code) + '_D.csv')
+    if not os.path.exists(path):
+        continue
+
+    y, dates = get_label_dates(path)
     dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in dates]
 
     if len(dates) <= 10:
