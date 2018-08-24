@@ -21,7 +21,7 @@ stock_codes = df['code'].tolist()
 print('total codes:%s' % len(stock_codes))
 
 timestr = datetime.now().strftime('%Y-%m-%d')
-log_path = os.path.join('snapshots_pick', 'update_notices_%s.log'%timestr)
+log_path = os.path.join('snapshots_pick', 'pick_notices_%s.log'%timestr)
 log = open(log_path, 'w')
 
 def get_notices_by_code(code):
