@@ -56,9 +56,13 @@ if not os.path.exists(snapshot_dir):
     print('snapshot dir not exists:%s' % snapshot_dir)
     exit(-1)
 
-ts = str(datetime.now()).replace(' ', '@').replace(':', '_')
-log_path = os.path.join('snapshots_pick', 'real_hkhsi_%s.log'%ts)
+timestr = str(datetime.now()).replace(' ', '@').replace(':', '_')
+log_path = os.path.join('snapshots_pick', 'real_hkhsi_%s.log'%timestr)
 log = open(log_path, 'w')
+
+log_path_sort = os.path.join('snapshots_pick', 'sorted_real_hkhsi_%s.log'%timestr)
+log_sort = open(log_path_sort, 'w')
+
 
 def get_data_dates_hkhsi():
     csvpath = './data/hkHSI_D.csv'
@@ -300,5 +304,9 @@ for i in range(len(code_scores)):
     print('picked %s:%.2f%%' % (stock_codes[max_index], code_scores[max_index] * 100))
     log.write('picked %s:%.2f%%,%s,%s\n' % (stock_codes[max_index], code_scores[max_index] * 100, date_test,best_cp_path))
     log.flush()
+
+    log_sort.write('%s@%.2f%%@%s@%s\n' % (stock_codes[max_index], code_scores[max_index] * 100, date_test,best_cp_path))
+    log_sort.flush()
+
 
 log.close()
