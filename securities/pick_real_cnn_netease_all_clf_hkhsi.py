@@ -310,3 +310,5 @@ for i in range(len(code_scores)):
 
 
 log.close()
+
+print("sort log: %s"%log_sort)
