@@ -28,6 +28,7 @@ def get_notices_by_code(code):
         print(e)
         return None
 
+start_time = time.time()
 for line in open(args.hkhsi):
     tokens = line.strip().split('@')
     code = tokens[0]
@@ -53,3 +54,6 @@ for line in open(args.hkhsi):
 #update_netease_by_code(600082)
 
 log.close()
+
+print("================================used time:%s secs=============================="%(time.time()-start_time))
+print("log_path:%s"%log_path)
