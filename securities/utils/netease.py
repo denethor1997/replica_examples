@@ -26,7 +26,7 @@ def get_hist_netease(code, start_date='', end_date=''):
     if end_date == '' or end_date == None:
         end_date = datetime.now().strftime('%Y%m%d')
 
-    print('loading from %s to %s' % (start_date, end_date))
+    print('loading from %s to %s:%s' % (start_date, end_date, code))
     url = 'http://quotes.money.163.com/service/chddata.html?code=%s&start=%s&end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP'%(code, start_date, end_date)
     try:
         request = Request(url)

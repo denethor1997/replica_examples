@@ -16,7 +16,7 @@ args = parser.parse_args()
 today = datetime.now().strftime('%Y-%m-%d')
 
 
-timestr = datetime.now().strftime('%Y-%m-%d')
+timestr = str(datetime.now()).replace(' ', '@').replace(':', '_')
 log_path = os.path.join('snapshots_pick', 'pick_notices_%s.log'%timestr)
 log = open(log_path, 'w')
 
